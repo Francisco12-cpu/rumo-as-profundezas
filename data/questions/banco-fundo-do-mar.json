@@ -1,0 +1,88 @@
+{
+  "nomeBaralho": "Fundo do Mar",
+  "versao": "1.0",
+  "descricao": "Perguntas temáticas sobre Bob Esponja e o fundo do mar.",
+  "efeitosCasasAtivos": ["avancar_2", "voltar_2", "pular_vez", "trocar_lugar", "pergunta_bonus"],
+  "perguntas": [
+    {
+      "id": 1,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "Qual é o nome do caracol de estimação do Bob Esponja?",
+      "opcoes": ["Gary", "Larry", "Jerry", "Terry"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 2,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "Qual é a cor da casa do Bob Esponja?",
+      "opcoes": ["Rosa", "Azul", "Amarela", "Verde"],
+      "respostaCorreta": 2,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 3,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "Qual é o nome do restaurante onde Bob Esponja trabalha?",
+      "opcoes": ["Siri Cascudo", "Hambúrguer Feliz", "Lanche do Mar", "Fritas Crocantes"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 4,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "Quem é o melhor amigo do Bob Esponja?",
+      "opcoes": ["Patrick", "Lula Molusco", "Sandy", "Plankton"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "jogar_novamente", "erro": "nenhum" }
+    },
+    {
+      "id": 5,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "Qual é o nome do vilão que quer roubar a fórmula do hambúrguer?",
+      "opcoes": ["Plankton", "Man Ray", "Bolha Suja", "Larry"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 6,
+      "categoria": "Bob Esponja",
+      "tipo": "verdadeiro_falso",
+      "pergunta": "Bob Esponja mora em um abacaxi.",
+      "opcoes": ["Verdadeiro", "Falso"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 10,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 7,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "Qual é o nome da esquilo que mora no fundo do mar?",
+      "opcoes": ["Sandy", "Cindy", "Mandy", "Wendy"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "jogar_novamente", "erro": "nenhum" }
+    },
+    {
+      "id": 8,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "Qual é o nome do chefe do Bob Esponja?",
+      "opcoes": ["Sr. Siriguejo", "Sr. Caranguejo", "Sr. Lagosta", "Sr. Camarão"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    }
+  ]
+}

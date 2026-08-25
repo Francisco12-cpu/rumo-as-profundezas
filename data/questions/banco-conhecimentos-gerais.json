@@ -1,0 +1,78 @@
+{
+  "nomeBaralho": "Conhecimentos Gerais",
+  "versao": "1.0",
+  "descricao": "Geografia, ciência, história, esportes e matemática — sem tema fixo.",
+  "efeitosCasasAtivos": ["avancar_2", "voltar_2", "pular_vez", "trocar_lugar", "pergunta_bonus"],
+  "perguntas": [
+    {
+      "id": 1,
+      "categoria": "Conhecimentos Gerais",
+      "tipo": "multipla_escolha",
+      "pergunta": "Qual é a capital da França?",
+      "opcoes": ["Londres", "Paris", "Madri", "Berlim"],
+      "respostaCorreta": 1,
+      "tempoSegundos": 20,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 2,
+      "categoria": "Ciência",
+      "tipo": "verdadeiro_falso",
+      "pergunta": "O Sol é uma estrela.",
+      "opcoes": ["Verdadeiro", "Falso"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "jogar_novamente", "erro": "nenhum" }
+    },
+    {
+      "id": 3,
+      "categoria": "Geografia",
+      "tipo": "multipla_escolha",
+      "pergunta": "Qual é o maior oceano do mundo?",
+      "opcoes": ["Atlântico", "Pacífico", "Índico", "Ártico"],
+      "respostaCorreta": 1,
+      "tempoSegundos": 20,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 4,
+      "categoria": "História",
+      "tipo": "multipla_escolha",
+      "pergunta": "Em que ano o homem pisou na Lua?",
+      "opcoes": ["1965", "1969", "1972", "1959"],
+      "respostaCorreta": 1,
+      "tempoSegundos": 20,
+      "efeitoCasa": { "acerto": "avancar_2", "erro": "voltar_2" }
+    },
+    {
+      "id": 5,
+      "categoria": "Conhecimentos Gerais",
+      "tipo": "multipla_escolha",
+      "pergunta": "Quantos continentes existem?",
+      "opcoes": ["5", "6", "7", "8"],
+      "respostaCorreta": 2,
+      "tempoSegundos": 20,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 6,
+      "categoria": "Esportes",
+      "tipo": "multipla_escolha",
+      "pergunta": "Qual país venceu a Copa do Mundo de 2018?",
+      "opcoes": ["Alemanha", "Brasil", "França", "Argentina"],
+      "respostaCorreta": 2,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 7,
+      "categoria": "Matemática",
+      "tipo": "multipla_escolha",
+      "pergunta": "Quanto é 7 × 8?",
+      "opcoes": ["54", "56", "58", "62"],
+      "respostaCorreta": 1,
+      "tempoSegundos": 10,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "_comentario": "Lista os bancos de perguntas disponíveis. Pra adicionar um banco novo: crie o arquivo .json na mesma pasta e adicione uma linha aqui apontando pra ele. Veja README.md nesta pasta para o passo a passo completo.",
+  "bancos": [
+    { "id": "fundo-do-mar", "arquivo": "banco-fundo-do-mar.json" },
+    { "id": "conhecimentos-gerais", "arquivo": "banco-conhecimentos-gerais.json" }
+  ]
+}

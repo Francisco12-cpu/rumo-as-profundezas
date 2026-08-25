@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <title>Rumo às Profundezas</title>
+        <meta
+            name="description"
+            content="Jogo de tabuleiro 3D de perguntas e respostas no fundo do mar — jogue sozinho contra bots, no mesmo aparelho com amigos, ou online (P2P). Direto no navegador, sem instalar nada."
+        />
+
+        <!-- Tags pra pré-visualização do link (WhatsApp/Discord/Telegram etc.) —
+             estáticas de propósito: crawlers de link preview não rodam JS, então
+             não dá pra depender de applyGameName() (js/main.js) aqui. Se
+             GAME_NAME (js/data/gameInfo.js) mudar, atualize esta seção junto. -->
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Rumo às Profundezas" />
+        <meta
+            property="og:description"
+            content="Jogo de tabuleiro 3D de perguntas e respostas — sozinho, com amigos no mesmo aparelho, ou online. Sem instalar nada."
+        />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="Rumo às Profundezas" />
+        <meta
+            name="twitter:description"
+            content="Jogo de tabuleiro 3D de perguntas e respostas — sozinho, com amigos, ou online."
+        />
+
+        <!-- Favicon: um emoji embutido via SVG data URI — sem depender de nenhum
+             arquivo de imagem externo, no mesmo espírito "sem assets externos"
+             do resto do jogo (texturas/áudio 100% procedurais). -->
+        <link
+            rel="icon"
+            href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>"
+        />
+
+        <!-- Bibliotecas (vendorizadas localmente em vendor/ — não dependem mais de CDN/internet) -->
+        <script src="vendor/three.min.js"></script>
+        <script src="vendor/gsap.min.js"></script>
+        <!-- peerjs.min.js NÃO é carregado aqui: só entra dinamicamente (ver
+         js/multiplayer.js -> loadPeerJsIfNeeded) quando alguém cria ou entra
+         numa sala P2P, já que solo/local nunca precisam dele. -->
+        <script src="vendor/EffectComposer.js"></script>
+        <script src="vendor/ShaderPass.js"></script>
+        <script src="vendor/CopyShader.js"></script>
+        <script src="vendor/RenderPass.js"></script>
+        <script src="vendor/UnrealBloomPass.js"></script>
+        <script src="vendor/LuminosityHighPassShader.js"></script>
+        <script src="vendor/OrbitControls.js"></script>
+
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <canvas id="game-canvas"></canvas>
+
+        <div class="ui-overlay" id="ui-overlay">
+            <!-- Único controle flutuante permanente: abre o modal de Configurações
+                 (áudio, idioma, qualidade viviam soltos numa barra antes disso) -->
+            <button
+                class="btn-settings-fab"
+                id="btn-open-settings"
+                data-i18n-title="settings_title"
+                title="Configurações"
+                aria-label="Configurações"
+            >
+                ⚙
+            </button>
+
+            <!-- MENU PRINCIPAL -->
+            <div class="screen active" id="screen-menu">
+                <!-- Texto preenchido a partir de GAME_NAME (js/data/gameInfo.js) — ver applyGameName() em main.js -->
+                <h1 class="menu-title" id="menu-game-title">TRIVIA 3D</h1>
+                <p class="menu-subtitle" data-i18n="menu_subtitle">Fundo do Mar - Bob Esponja</p>
+                <div class="menu-buttons">
+                    <button class="btn btn-primary hidden" id="btn-resume-game" data-i18n="btn_resume">
+                        Continuar Partida
+                    </button>
+                    <button class="btn btn-primary" id="btn-new-solo" data-i18n="btn_solo">Novo Jogo Solo</button>
+                    <button class="btn btn-secondary" id="btn-new-local" data-i18n="btn_local">Modo Local</button>
+                    <button class="btn btn-tertiary" id="btn-create-room" data-i18n="btn_host">Criar Sala P2P</button>
+                    <button class="btn btn-secondary" id="btn-join-room" data-i18n="btn_join">Entrar em Sala</button>
+                    <button class="btn btn-warning" id="btn-open-deck" data-i18n="btn_deck">Gerenciar Perguntas</button>
+                    <button class="btn btn-secondary" id="btn-open-docs" data-i18n="btn_rules">Regras</button>
+                </div>
+            </div>
+
+            <!-- TELA DE CONFIGURAÇÃO -->
+            <div class="screen hidden" id="screen-setup">
+                <div class="setup-container">
+                    <h2 class="setup-title" data-i18n="setup_title">Configuração da Partida</h2>
+                    <div class="setup-group">
+                        <div class="setup-label" data-i18n="label_board_size">Tamanho do Tabuleiro</div>
+                        <select class="setup-select" id="setup-board-size">
+                            <option value="20" data-i18n="opt_board_short">Curto (20 casas)</option>
+                            <option value="30" selected data-i18n="opt_board_medium">Médio (30 casas)</option>
+                            <option value="40" data-i18n="opt_board_long">Longo (40 casas)</option>
+                            <option value="50" data-i18n="opt_board_marathon">Maratona (50 casas)</option>
+                        </select>
+                    </div>
+                    <div class="setup-group">
+                        <div class="setup-label" data-i18n="label_num_players">Número de Jogadores</div>
+                        <select class="setup-select" id="setup-num-players">
+                            <option value="1" data-i18n="opt_players_1">1 Jogador</option>
+                            <option value="2" selected data-i18n="opt_players_2">2 Jogadores</option>
+                            <option value="3" data-i18n="opt_players_3">3 Jogadores</option>
+                            <option value="4" data-i18n="opt_players_4">4 Jogadores</option>
+                        </select>
+                    </div>
+                    <div class="setup-group" id="setup-bots-group">
+                        <div class="setup-label" data-i18n="label_num_bots">Bots Adicionais (Solo)</div>
+                        <select class="setup-select" id="setup-num-bots">
+                            <option value="0" data-i18n="opt_bots_0">Nenhum</option>
+                            <option value="1" selected data-i18n="opt_bots_1">1 Bot</option>
+                            <option value="2" data-i18n="opt_bots_2">2 Bots</option>
+                            <option value="3" data-i18n="opt_bots_3">3 Bots</option>
+                        </select>
+                    </div>
+                    <div class="setup-group">
+                        <div class="setup-label" data-i18n="label_question_bank">Banco de Perguntas</div>
+                        <select class="setup-select" id="setup-question-bank">
+                            <option value="all" data-i18n="bank_all">Todos os bancos (aleatório)</option>
+                        </select>
+                    </div>
+                    <div class="setup-group">
+                        <div class="setup-label" data-i18n="label_colors">Cores dos Personagens</div>
+                        <div class="color-options" id="color-options-container"></div>
+                    </div>
+                    <div class="setup-group" id="setup-room-code-group" style="display: none">
+                        <div class="setup-label" data-i18n="label_room_code">Código da Sala</div>
+                        <input
+                            class="setup-input"
+                            id="setup-room-code"
+                            type="text"
+                            placeholder="SALA-0000"
+                            maxlength="20"
+                        />
+                    </div>
+                    <div class="flex gap-8 mt-16" style="gap: 12px">
+                        <button class="btn btn-secondary w-full" id="btn-setup-back" data-i18n="btn_back">
+                            Voltar
+                        </button>
+                        <button class="btn btn-primary w-full" id="btn-start-game" data-i18n="btn_start">
+                            Começar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HUD -->
+            <div class="hud" id="hud">
+                <div class="hud-top">
+                    <div class="hud-players" id="hud-players"></div>
+                    <div class="hud-top-right">
+                        <div class="hud-room-code" id="hud-room-code" style="display: none">
+                            <span><span data-i18n="hud_room">Sala:</span> <code id="hud-room-code-text"></code></span>
+                            <button
+                                class="btn-copy"
+                                id="btn-copy-room"
+                                data-i18n="hud_copy"
+                                data-i18n-title="hud_copy"
+                                title="Copiar"
+                            >
+                                Copiar
+                            </button>
+                        </div>
+                        <button
+                            class="btn-leave-game"
+                            id="btn-leave-game"
+                            data-i18n="hud_leave"
+                            data-i18n-title="hud_leave"
+                            title="Sair da partida"
+                            aria-label="Sair da partida"
+                        >
+                            Sair
+                        </button>
+                    </div>
+                </div>
+                <div id="turn-banner" class="turn-banner hidden" data-i18n="hud_your_turn">SUA VEZ!</div>
+
+                <!-- Card de informação da casa (clicar/tocar numa casa do tabuleiro) -->
+                <div class="tile-info-card hidden" id="tile-info-card" role="status" aria-live="polite">
+                    <div class="tile-info-symbol" id="tile-info-symbol">?</div>
+                    <div class="tile-info-text">
+                        <div class="tile-info-heading">
+                            <span class="tile-info-tag">#<span id="tile-info-number">1</span></span>
+                            <span class="tile-info-label" id="tile-info-label">Casa</span>
+                        </div>
+                        <div class="tile-info-desc" id="tile-info-desc"></div>
+                    </div>
+                    <button class="tile-info-close" id="btn-tile-info-close" aria-label="Fechar">✕</button>
+                </div>
+
+                <button class="btn-camera-toggle" id="btn-camera-toggle" data-i18n="hud_camera">Mudar Câmera</button>
+                <div class="hud-bottom">
+                    <button class="btn-roll" id="btn-roll-dice" data-i18n="hud_roll" disabled>Rolar Dado</button>
+                    <div id="roll-hint" class="roll-hint"></div>
+                    <div id="hud-turn-info" class="hud-turn-info"></div>
+                </div>
+            </div>
+
+            <!-- MODAL DE PERGUNTA -->
+            <div
+                class="modal-overlay hidden"
+                id="question-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Pergunta"
+            ></div>
+
+            <!-- MODAL DE DECK -->
+            <div
+                class="modal-overlay hidden"
+                id="deck-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="deck-modal-title"
+            >
+                <div class="modal-card">
+                    <h3
+                        id="deck-modal-title"
+                        data-i18n="deck_title"
+                        style="color: var(--accent-yellow); margin-bottom: 16px"
+                    >
+                        Gerenciador de Perguntas
+                    </h3>
+                    <p data-i18n="deck_desc" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px">
+                        Cole seu JSON de perguntas ou edite o existente. Salve para usar nas próximas partidas.
+                    </p>
+                    <textarea class="deck-textarea" id="deck-textarea" spellcheck="false"></textarea>
+                    <div class="flex gap-8 mt-16" style="gap: 10px; flex-wrap: wrap">
+                        <button
+                            class="btn btn-success btn-sm"
+                            id="btn-deck-save"
+                            data-i18n="deck_save"
+                            style="background: #00e676; color: #001a33"
+                        >
+                            Salvar Baralho
+                        </button>
+                        <button class="btn btn-secondary btn-sm" id="btn-deck-default" data-i18n="deck_default">
+                            Carregar Padrão
+                        </button>
+                        <button class="btn btn-secondary btn-sm" id="btn-deck-export" data-i18n="deck_export">
+                            Exportar JSON
+                        </button>
+                        <button
+                            class="btn btn-danger btn-sm"
+                            id="btn-deck-close"
+                            data-i18n="btn_close"
+                            style="background: #ff5252"
+                        >
+                            Fechar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL DE DOCS -->
+            <div
+                class="modal-overlay hidden"
+                id="docs-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="docs-modal-title"
+            >
+                <div class="modal-card">
+                    <h3
+                        id="docs-modal-title"
+                        data-i18n="docs_title"
+                        style="color: var(--accent-yellow); margin-bottom: 16px"
+                    >
+                        Regras do Jogo
+                    </h3>
+                    <div class="doc-content">
+                        <h3 data-i18n="docs_h_objective">Objetivo</h3>
+                        <p data-i18n="docs_p_objective">
+                            Seja o primeiro a chegar à última casa respondendo perguntas e superando eventos especiais.
+                        </p>
+                        <h3 data-i18n="docs_h_flow">Fluxo da Rodada</h3>
+                        <p data-i18n="docs_p_flow">
+                            1. Clique em "Rolar Dado"<br />2. O dado gira e mostra um número (1-6)<br />3. Seu peão
+                            avança pelo tabuleiro<br />4. Responda a pergunta se cair em casa normal<br />5. Acertou?
+                            Bônus! Errou? Penalidade!
+                        </p>
+                        <h3 data-i18n="docs_h_special">Casas Especiais</h3>
+                        <p data-i18n="docs_p_special">
+                            <b>Avançar</b> - Avance 2 casas extras<br /><b>Voltar</b> - Volte 2 casas<br /><b
+                                >Pular Vez</b
+                            >
+                            - Próximo jogador perde a vez<br /><b>Trocar</b> - Troque com o último colocado<br /><b
+                                >Bônus 2x</b
+                            >
+                            - Pergunta vale o dobro
+                        </p>
+                        <h3 data-i18n="docs_h_p2p">Multiplayer P2P</h3>
+                        <p data-i18n="docs_p_p2p">
+                            O Host cria uma sala e compartilha o código. Convidados digitam o código para entrar.
+                            Conexão direta via WebRTC.
+                        </p>
+                        <h3 data-i18n="docs_h_json">Formato JSON</h3>
+                        <pre>
+{
+  "nomeBaralho": "Meu Baralho",
+  "perguntas": [
+    {
+      "categoria": "Geral",
+      "tipo": "multipla_escolha",
+      "pergunta": "Pergunta?",
+      "opcoes": ["A", "B", "C", "D"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 20,
+      "efeitoCasa": {"acerto": "avancar_1", "erro": "voltar_1"}
+    }
+  ]
+}</pre>
+                        <h3 data-i18n="docs_h_notice">Aviso</h3>
+                        <p data-i18n="docs_p_notice" style="font-size: 0.8rem">
+                            Este é um projeto de fã, feito sem fins comerciais, para uso pessoal. Bob Esponja e os
+                            personagens pertencem à Nickelodeon/Paramount — este jogo não tem qualquer afiliação oficial
+                            com eles.
+                        </p>
+                    </div>
+                    <button
+                        class="btn btn-danger btn-sm mt-16"
+                        id="btn-docs-close"
+                        data-i18n="btn_close"
+                        style="background: #ff5252"
+                    >
+                        Fechar
+                    </button>
+                </div>
+            </div>
+
+            <!-- MODAL DE ENTRAR EM SALA -->
+            <div
+                class="modal-overlay hidden"
+                id="join-room-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="join-room-title"
+            >
+                <div class="modal-card">
+                    <h3
+                        id="join-room-title"
+                        data-i18n="join_title"
+                        style="color: var(--accent-yellow); margin-bottom: 16px"
+                    >
+                        Entrar em Sala P2P
+                    </h3>
+                    <p data-i18n="join_desc" style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 14px">
+                        Digite o código da sala do Host.
+                    </p>
+                    <input
+                        class="setup-input"
+                        id="join-room-input"
+                        type="text"
+                        placeholder="SALA-0000"
+                        maxlength="20"
+                        style="margin-bottom: 14px"
+                    />
+                    <div class="flex gap-8" style="gap: 10px">
+                        <button class="btn btn-secondary" id="btn-join-cancel" data-i18n="btn_cancel">Cancelar</button>
+                        <button class="btn btn-primary" id="btn-join-confirm" data-i18n="btn_join">Entrar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL DE CONFIGURAÇÕES -->
+            <div
+                class="modal-overlay hidden"
+                id="settings-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="settings-modal-title"
+            >
+                <div class="modal-card settings-card">
+                    <h3 id="settings-modal-title" data-i18n="settings_title" class="settings-title">Configurações</h3>
+
+                    <div class="settings-section">
+                        <div class="settings-section-title" data-i18n="settings_audio">Áudio</div>
+                        <div class="settings-row">
+                            <label class="settings-label" data-i18n="settings_master" for="settings-volume-master"
+                                >Volume Geral</label
+                            >
+                            <div class="settings-control">
+                                <button
+                                    class="btn-mute"
+                                    id="btn-mute"
+                                    aria-label="Ativar/mudo o som"
+                                    title="Ativar/mudo o som"
+                                >
+                                    🔊
+                                </button>
+                                <input
+                                    class="volume-slider-master"
+                                    id="settings-volume-master"
+                                    type="range"
+                                    min="0"
+                                    max="1"
+                                    step="0.05"
+                                    value="0.8"
+                                    aria-label="Volume geral"
+                                />
+                            </div>
+                        </div>
+                        <div class="settings-row">
+                            <label class="settings-label" data-i18n="settings_music" for="settings-volume-music"
+                                >Música</label
+                            >
+                            <div class="settings-control">
+                                <input
+                                    class="volume-slider-music"
+                                    id="settings-volume-music"
+                                    type="range"
+                                    min="0"
+                                    max="1"
+                                    step="0.05"
+                                    value="0.7"
+                                    aria-label="Volume da música"
+                                />
+                            </div>
+                        </div>
+                        <div class="settings-row">
+                            <label class="settings-label" data-i18n="settings_sfx" for="settings-volume-sfx"
+                                >Efeitos</label
+                            >
+                            <div class="settings-control">
+                                <input
+                                    class="volume-slider-sfx"
+                                    id="settings-volume-sfx"
+                                    type="range"
+                                    min="0"
+                                    max="1"
+                                    step="0.05"
+                                    value="1"
+                                    aria-label="Volume dos efeitos"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-title" data-i18n="settings_language">Idioma</div>
+                        <div class="settings-row">
+                            <div class="settings-lang-options">
+                                <button class="settings-lang-btn" id="btn-lang-pt" data-lang="pt">Português</button>
+                                <button class="settings-lang-btn" id="btn-lang-en" data-lang="en">English</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-title" data-i18n="settings_video">Vídeo</div>
+                        <div class="settings-row">
+                            <label class="settings-label" data-i18n="settings_quality" for="settings-quality"
+                                >Qualidade</label
+                            >
+                            <select class="setup-select settings-quality-select" id="settings-quality">
+                                <option value="auto" data-i18n="settings_quality_auto">Automática</option>
+                                <option value="high" data-i18n="settings_quality_high">Alta</option>
+                                <option value="low" data-i18n="settings_quality_low">Leve</option>
+                            </select>
+                        </div>
+                        <p class="settings-hint" data-i18n="settings_quality_hint">
+                            Vale a partir da próxima partida ou ao recarregar a página.
+                        </p>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-title" data-i18n="settings_difficulty">Dificuldade</div>
+                        <div class="settings-row">
+                            <label
+                                class="settings-label"
+                                data-i18n="settings_bot_difficulty"
+                                for="settings-bot-difficulty"
+                                >Acerto dos inimigos</label
+                            >
+                            <select class="setup-select settings-quality-select" id="settings-bot-difficulty">
+                                <option value="0.5" data-i18n="settings_difficulty_easy">Fácil (50%)</option>
+                                <option value="0.75" data-i18n="settings_difficulty_normal">Normal (75%)</option>
+                                <option value="1" data-i18n="settings_difficulty_hard">Difícil (100%)</option>
+                            </select>
+                        </div>
+                        <p class="settings-hint" data-i18n="settings_difficulty_hint">
+                            Chance de um inimigo (bot) acertar cada pergunta.
+                        </p>
+                    </div>
+
+                    <button
+                        class="btn btn-danger btn-sm mt-16"
+                        id="btn-settings-close"
+                        data-i18n="btn_close"
+                        style="background: #ff5252"
+                    >
+                        Fechar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Camada de dados (conteúdo puro, sem lógica nem renderização) -->
+        <script src="js/data/gameInfo.js"></script>
+        <script src="js/data/tileTypes.js"></script>
+        <script src="js/data/characters.js"></script>
+        <script src="js/data/diceFaces.js"></script>
+        <script src="js/data/boardPath.js"></script>
+
+        <!-- Código do jogo -->
+        <script src="js/config.js"></script>
+        <script src="js/i18n.js"></script>
+        <script src="js/audio.js"></script>
+        <script src="js/pawnBuilders.js"></script>
+        <script src="js/scene.js"></script>
+        <script src="js/interaction.js"></script>
+        <script src="js/particles.js"></script>
+        <script src="js/camera.js"></script>
+        <script src="js/state.js"></script>
+        <script src="js/bots.js"></script>
+        <script src="js/questions.js"></script>
+        <script src="js/multiplayer.js"></script>
+        <script src="js/ui.js"></script>
+        <script src="js/main.js"></script>
+    </body>
+</html>

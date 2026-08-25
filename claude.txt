@@ -1,0 +1,187 @@
+================================================================================
+ESPECIFICAÇÃO TÉCNICA E PROMPT MESTRE: JOGO DE TABULEIRO 3D INTERATIVO (Q&A)
+ARQUIVO ÚNICO HTML (THREE.JS + GSAP + PEERJS)
+================================================================================
+
+1. VISÃO GERAL DO PROJETO
+--------------------------------------------------------------------------------
+Objetivo: Criar um jogo de tabuleiro 3D interativo de perguntas e respostas (Trivia/Q&A), totalmente funcional dentro de um ÚNICO ARQUIVO HTML (index.html). O jogo deve rodar diretamente no navegador de celulares e computadores sem necessidade de instalação ou de um servidor backend complexo de Node.js/Python, utilizando bibliotecas externas carregadas via CDN.
+
+Filosofia do Projeto:
+- "Single-File Architecture": Todo o HTML, CSS, JavaScript, lógica 3D, áudio sintetizado e lógica de rede P2P devem residir dentro de um único arquivo 'index.html'.
+- UI Overlay Flutuante: A interface bidimensional (menus, botões, modais de pergunta, painel de rodada) será desenhada com HTML/CSS flutuando acima do Canvas 3D do Three.js.
+- Responsividade Total: O visual deve se adaptar com perfeição a telas na vertical (smartphones) e na horizontal (desktops/tablets).
+
+--------------------------------------------------------------------------------
+2. ARQUITETURA TÉCNICA E BIBLIOTECAS (VIA CDN)
+--------------------------------------------------------------------------------
+O arquivo HTML deve incluir as seguintes bibliotecas via CDN no <head>:
+1. Three.js (r128+): Para renderização da cena 3D, iluminação, malhas, textura e renderizador Canvas.
+2. GSAP - GreenSock Animation Platform (v3+): Para interpolações suaves e complexas de movimento do peão ao longo de curvas Bezier/Splines e animações cinemáticas de câmera.
+3. PeerJS (v1.5+): Para gerenciamento de conexões peer-to-peer (P2P via WebRTC) entre dispositivos na mesma rede ou via código de sala.
+4. Web Audio API (Nativo do Navegador): Para síntese de efeitos sonoros sem dependência de arquivos .mp3 externos.
+
+--------------------------------------------------------------------------------
+3. MODOS DE JOGO E MULTIPLAYER
+--------------------------------------------------------------------------------
+O jogo deve suportar de 1 a 4 jogadores nos seguintes modos:
+1. Modo Solo (vs Bot/IA): O jogador disputa a partida contra de 1 a 3 bots controlados por inteligência artificial local com atraso simulado de pensamento.
+2. Modo Local (Passa e Joga): Vários jogadores no mesmo dispositivo, alternando a vez.
+3. Modo Multiplayer P2P Local:
+   - O Jogador 1 atua como "Host" e clica em "Criar Sala P2P".
+   - O sistema gera um Código de Sala simples (ex: "SALA-8492" usando PeerJS).
+   - Até 3 outros jogadores inserem o código no menu "Entrar na Sala".
+   - Os dados do jogo (rolagem do dado, pergunta sorteada, movimentação dos peões e mudança de turno) são sincronizados em tempo real via WebRTC Data Channels.
+
+--------------------------------------------------------------------------------
+4. GRÁFICOS 3D, CÂMERA E ANIMAÇÃO
+--------------------------------------------------------------------------------
+A. Tabuleiro e Trilha Curvada:
+- O tabuleiro não deve ser uma linha reta sem graça. Ele deve ter uma estrada/trilha sinuosa com curvas elegantes e variações sutis de altura.
+- Implementação via THREE.CatmullRomCurve3 ou curvas Bezier para definir a trajetória do caminho.
+- As casas do tabuleiro (Tiles) são geradas automaticamente ao longo da curva 3D, numeradas sequencialmente e destacadas visualmente.
+
+B. Peões dos Jogadores:
+- Modelos 3D minimalistas e elegantes (ex: pinos estilizados de xadrez/ludo com geometria geometricamente polida).
+- Opção de escolha de cores distintas para os jogadores (Vermelho, Azul, Verde, Amarelo, Roxo, Laranja).
+- Animação de movimentação: Ao andar N casas, o peão faz pequenos pulos ("hopping animation") acompanhando rigorosamente a curva da estrada, com poeira/partículas leves ao pousar em cada casa.
+
+C. Dado 3D Animado:
+- Um dado de 6 lados modelado via Three.js no centro do tabuleiro ou em uma área de destaque.
+- Quando o jogador clica em "Rolar Dado", o dado executa uma animação de rotação rápida em múltiplos eixos e cai com física/suavização no resultado sorteado (de 1 a 6).
+
+D. Sistema de Câmera Cinemática Dinâmica:
+- Transições de câmera gerenciadas pelo GSAP:
+  - Visão Geral (Overview): Visão isométrica superior para observar o tabuleiro e os oponentes.
+  - Foco no Dado: A câmera se aproxima suavemente do dado durante a rolagem.
+  - Câmera Perseguição: A câmera segue o peão por trás enquanto ele anda pelas curvas da estrada.
+  - Foco de Pergunta: A câmera foca no jogador atual enquanto a pergunta surge na tela.
+
+--------------------------------------------------------------------------------
+5. MECÂNICAS DE JOGO E CASAS ESPEICIAIS
+--------------------------------------------------------------------------------
+Fluxo da Rodada:
+1. Turno do Jogador: O jogador da vez clica em "Rolar Dado".
+2. Animação de Rolagem: O dado 3D gira e exibe o número sorteado (ex: 4).
+3. Movimentação: O peão avança 4 casas na trilha curvada com animações e câmera dinâmica.
+4. Disparo de Evento/Pergunta:
+   - Se cair em uma casa normal: Uma pergunta em pop-up é sorteada do baralho ativo.
+   - Se acertar a pergunta: Permanece na casa (ou ganha bônus configurado).
+   - Se errar a pergunta: Recua 1 ou 2 casas (penalidade configurável).
+5. Casas de Eventos Especiais (Símbolos marcados no tabuleiro):
+   - "Avançar X Casas" (Sorte rápida)
+   - "Voltar X Casas" (Percalço)
+   - "Pule a Vez do Oponente"
+   - "Trocar de Lugar com o ÚLTIMO Colocado"
+   - "Pergunta Bônus (Vale 2x)"
+6. Fim do Turno: A vez passa para o próximo jogador/bot.
+7. Condição de Vitória: O primeiro jogador a alcançar a última casa (linha de chegada) vence a partida, disparando chuva de confetes 3D.
+
+--------------------------------------------------------------------------------
+6. INTERFACE DE USUÁRIO (UI/UX - CSS OVERLAY)
+--------------------------------------------------------------------------------
+Estrutura de Telas do HTML/CSS:
+1. Menu Inicial:
+   - Título estilizado do jogo com fundo 3D animado.
+   - Botões: "Novo Jogo Solo", "Criar Sala P2P", "Entrar em Sala", "Gerenciador de Perguntas", "Documentação / Regras".
+2. Configuração da Partida:
+   - Seleção da quantidade de casas no tabuleiro (ex: 20, 30, 40 ou 60 casas).
+   - Escolha do número de jogadores e seleção de cores dos peões.
+3. Overlay do Jogo (HUD):
+   - Placar lateral com os nomes dos jogadores, posições atuais e indicação do turno ativo.
+   - Botão grande e chamativo "Rolar Dado".
+   - Indicador do Código da Sala P2P (com botão "Copiar Código").
+4. Modal de Pergunta (Pop-up Estilizado):
+   - Categoria e Dificuldade da Pergunta.
+   - Texto da pergunta em destaque.
+   - Botões com as opções de resposta (Múltipla Escolha ou Verdadeiro/Falso).
+   - Temporizador regressivo visual (barra de tempo ou cronômetro).
+5. Gerenciador de Baralhos (Modal JSON):
+   - Área de texto para colar/editar baralhos em formato JSON.
+   - Botões para "Salvar Baralho Local", "Carregar Baralho Padrão", "Exportar JSON".
+   - Persistência via localStorage do navegador.
+6. Painel de Documentação e Regras:
+   - Aba explicativa cobrindo as regras do jogo, como funciona a conexão P2P e como formatar o JSON de perguntas.
+
+--------------------------------------------------------------------------------
+7. SCHEMA E ESTRUTURA DO JSON DE PERGUNTAS
+--------------------------------------------------------------------------------
+O jogo deve utilizar um formato JSON estruturado conforme o exemplo abaixo:
+
+{
+  "nomeBaralho": "Perguntas e Respostas das Amigas",
+  "versao": "1.0",
+  "descricao": "Baralho personalizado de conhecimentos gerais e desafios",
+  "perguntas": [
+    {
+      "id": 1,
+      "categoria": "Conhecimentos Gerais",
+      "tipo": "multipla_escolha",
+      "pergunta": "Qual é a capital da França?",
+      "opcoes": [
+        "Londres",
+        "Paris",
+        "Madri",
+        "Berlim"
+      ],
+      "respostaCorreta": 1,
+      "tempoSegundos": 20,
+      "efeitoCasa": {
+        "acerto": "avancar_1",
+        "erro": "voltar_1"
+      }
+    },
+    {
+      "id": 2,
+      "categoria": "Ciência & Natureza",
+      "tipo": "verdadeiro_falso",
+      "pergunta": "O Sol é uma estrela.",
+      "opcoes": [
+        "Verdadeiro",
+        "Falso"
+      ],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": {
+        "acerto": "jogar_novamente",
+        "erro": "nenhum"
+      }
+    }
+  ]
+}
+
+--------------------------------------------------------------------------------
+8. RECURSOS SONOROS E VISUAIS ADICIONAIS (NATIVOS)
+--------------------------------------------------------------------------------
+A. Síntese de Áudio com Web Audio API:
+- Sem arquivos externos! Função JS que sintetiza frequências para criar:
+  - Som de rolagem do dado (ruído branco suave/cliques rápidos).
+  - Som de movimento do peão (puf/passo grave).
+  - Som de resposta correta (acorde maior/chime festivo).
+  - Som de resposta incorreta (tom grave descendente).
+  - Som de vitória (fanfarra sintética rápida).
+
+B. Sistema de Partículas Three.js:
+- Emissão de confetes coloridos em 3D quando um jogador vence ou acerta uma pergunta difícil.
+- Pequenos anéis de poeira/luz sob o peão ao aterrissar em cada casa.
+
+C. Feedback Háptico (Vibração Mobile):
+- Uso de navigator.vibrate([50]) para dar sensação tátil ao rolar o dado ou errar/acertar perguntas em dispositivos Android/iOS compatíveis.
+
+--------------------------------------------------------------------------------
+9. INSTRUÇÕES DE EXECUÇÃO PARA A IA
+--------------------------------------------------------------------------------
+Ao implementar este projeto, siga rigorosamente as seguintes etapas no arquivo 'index.html':
+1. Estruture o HTML base contendo as tags <script> com as CDNs do Three.js, GSAP e PeerJS.
+2. Escreva o CSS completo dentro de <style>, estilizando o overlay UI de forma moderna, limpa e com bom contraste (tema dark/neon ou minimalista pastel).
+3. Implemente o sistema de renderização Three.js (Cena, Câmera, Luzes, Terreno e a Trilha Curvada com CatmullRomCurve3).
+4. Desenvolva o gerador de malhas dos Peões e do Dado de 6 lados.
+5. Programe a física/animação do Dado e as interpolações do GSAP para o peão e a câmera.
+6. Crie a camada lógica JavaScript:
+   - Gerenciador do estado do jogo (Turnos, Posições, Placar).
+   - Módulo P2P via PeerJS (Host/Guest data exchange).
+   - Módulo do Bot (IA para turno solo).
+   - Gerenciador de Perguntas (JSON loader/localStorage).
+   - Sintetizador de áudio Web Audio API.
+7. Garanta que todas as interações funcionem sem erros de console e de forma fluida a 60 FPS em celulares intermediários.
+================================================================================
