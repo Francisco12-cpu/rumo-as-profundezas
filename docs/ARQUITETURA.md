@@ -392,7 +392,36 @@ detalhes de como registrar um builder que carregue um `.glb` via `GLTFLoader`
   não chame `createOceanEnvironment()` mais de uma vez na mesma sessão sem
   limpar o grupo primeiro, ou a decoração dobra.
 
-## 17. Melhorias futuras (fora do escopo desta rodada de finalização)
+## 17. PWA / app instalável (`manifest.webmanifest`, `sw.js`)
+
+O jogo pode ser "instalado" (Chrome/Edge/Android: menu → Instalar app; iOS
+Safari: Compartilhar → Adicionar à Tela de Início), o que cria um ícone
+próprio e abre em janela standalone (sem barra de endereço). Três peças:
+
+- **`manifest.webmanifest`** (raiz): nome, cores de tema e os ícones
+  (`assets/icons/icon-192.png` e `icon-512.png`, gerados proceduralmente —
+  mesmo espírito de "sem depender de asset externo baixado" do resto do
+  jogo). Linkado em `index.html` via `<link rel="manifest">`.
+  `assets/icons/apple-touch-icon.png` cobre o caso do Safari/iOS, que ignora
+  `manifest.webmanifest` pra esse fim.
+- **`sw.js`** (raiz): service worker com cache-first + fallback pra rede pra
+  qualquer request GET do próprio site — deixa o jogo abrir offline depois da
+  primeira visita, sem manter uma lista própria de arquivos pra cachear (isso
+  evitaria duplicar `GAME_FILES`/ordem de `<script>` em mais um lugar; ver
+  seção 15/16).
+- **Registro inline em `index.html`** (depois de `js/main.js`, fora de
+  `js/`): `navigator.serviceWorker.register(...)`, guardado por
+  `location.protocol.startsWith('http')`. Fica fora de `js/*.js` de propósito
+  — não é lógica de jogo, então não precisa entrar em `GAME_FILES`
+  (`test/mocks.js`).
+
+**Só funciona servido por http(s)** (service worker exige isso; `localhost`
+conta). Abrindo `index.html` direto (`file://`) o registro falha
+silenciosamente (`.catch(() => {})`) e o jogo continua funcionando igual,
+só sem a opção de instalar/offline — mesma degradação graciosa que os
+bancos de perguntas via `fetch` (seção 6).
+
+## 18. Melhorias futuras (fora do escopo desta rodada de finalização)
 
 Itens que foram considerados mas propositalmente **não implementados** agora,
 por serem mudanças grandes demais pra uma etapa de estabilização (ver

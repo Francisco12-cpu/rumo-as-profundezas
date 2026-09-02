@@ -34,6 +34,13 @@
             href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>"
         />
 
+        <!-- PWA: permite "Instalar app" / "Adicionar à tela inicial". Só funciona
+             servido por http(s) (service worker exige isso) — em file:// o jogo
+             continua funcionando normalmente, só sem a opção de instalar. -->
+        <link rel="manifest" href="manifest.webmanifest" />
+        <meta name="theme-color" content="#003366" />
+        <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+
         <!-- Bibliotecas (vendorizadas localmente em vendor/ — não dependem mais de CDN/internet) -->
         <script src="vendor/three.min.js"></script>
         <script src="vendor/gsap.min.js"></script>
@@ -519,5 +526,16 @@
         <script src="js/multiplayer.js"></script>
         <script src="js/ui.js"></script>
         <script src="js/main.js"></script>
+
+        <!-- Registro do service worker (PWA). Fica inline, fora de js/, porque
+             não é lógica de jogo — não precisa entrar em GAME_FILES
+             (test/mocks.js). Silencioso em file:// ou navegadores sem suporte. -->
+        <script>
+            if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('sw.js').catch(() => {});
+                });
+            }
+        </script>
     </body>
 </html>

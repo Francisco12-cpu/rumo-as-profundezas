@@ -83,6 +83,206 @@
       "respostaCorreta": 0,
       "tempoSegundos": 15,
       "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 9,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "Onde fica a cidade onde Bob Esponja mora?",
+      "opcoes": ["Fenda do Biquíni", "Ilha da Baleia", "Recife de Coral", "Vila do Mar"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 10,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "Qual é a profissão do Lula Molusco no Siri Cascudo?",
+      "opcoes": ["Caixa", "Cozinheiro", "Garçom", "Gerente"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 11,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "Quem é o dono do restaurante Siri Cascudo?",
+      "opcoes": ["Seu Sirigueijo", "Plankton", "Lula Molusco", "Sandy"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 12,
+      "categoria": "Bob Esponja",
+      "tipo": "verdadeiro_falso",
+      "pergunta": "Bob Esponja trabalha na cozinha do Siri Cascudo.",
+      "opcoes": ["Verdadeiro", "Falso"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "jogar_novamente", "erro": "nenhum" }
+    },
+    {
+      "id": 13,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "Qual é a cor da pele do Lula Molusco?",
+      "opcoes": ["Azul", "Verde", "Rosa", "Amarelo"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 14,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "Qual é o formato da casa de Patrick Estrela?",
+      "opcoes": ["Uma pedra", "Um abacaxi", "Uma concha", "Um balde"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 15,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "Sandy Cheeks é um(a):",
+      "opcoes": ["Esquilo", "Peixe", "Estrela-do-mar", "Polvo"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 16,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "Qual é o nome do computador do Plankton?",
+      "opcoes": ["Karen", "Sandy", "Pearl", "Mindy"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 17,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "Qual é o nome do restaurante rival do Siri Cascudo?",
+      "opcoes": ["Balde de Lixo", "Peixaria do Porto", "Cantina do Mar", "Concha Dourada"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_2", "erro": "voltar_2" }
+    },
+    {
+      "id": 18,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "Plankton sempre tenta roubar a fórmula secreta de qual prato?",
+      "opcoes": ["Hambúrguer de Siri", "Sorvete de Alga", "Pizza de Coral", "Sopa de Água-viva"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 19,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "Qual é o instrumento musical que Lula Molusco adora tocar?",
+      "opcoes": ["Clarinete", "Violão", "Bateria", "Flauta"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 20,
+      "categoria": "Bob Esponja",
+      "tipo": "verdadeiro_falso",
+      "pergunta": "Gary, o caracol do Bob Esponja, mia como um gato.",
+      "opcoes": ["Verdadeiro", "Falso"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 21,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "Bob Esponja se formou em qual escola?",
+      "opcoes": ["Escola de Condução Náutica", "Universidade do Mar", "Colégio de Fenda do Biquíni", "Academia de Culinária"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 22,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "O que o Seu Sirigueijo ama mais do que tudo?",
+      "opcoes": ["Dinheiro", "Comida", "Música", "Viagens"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 23,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "Quem é o instrutor de natação e salva-vidas amigo do Bob Esponja?",
+      "opcoes": ["Larry, o Lagostim", "Perch Perkins", "Mermaid Man", "Barnacle Boy"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 24,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "De que fruta é feita a casa do Bob Esponja?",
+      "opcoes": ["Abacaxi", "Coco", "Melancia", "Laranja"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 25,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "Patrick Estrela mora embaixo de:",
+      "opcoes": ["Uma pedra", "Uma árvore", "Um barco afundado", "Um rochedo de coral"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 26,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "Bob Esponja é o quê?",
+      "opcoes": ["Uma esponja do mar", "Um peixe", "Um caranguejo", "Uma estrela-do-mar"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 27,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "Qual é o formato da calça que o Bob Esponja usa?",
+      "opcoes": ["Quadrada", "Redonda", "Triangular", "Listrada"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "jogar_novamente", "erro": "nenhum" }
+    },
+    {
+      "id": 28,
+      "categoria": "Bob Esponja",
+      "tipo": "multipla_escolha",
+      "pergunta": "Qual é a profissão dos sonhos de Lula Molusco, que ele nunca alcança?",
+      "opcoes": ["Ator/artista", "Astronauta", "Cantor de ópera", "Escritor"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
     }
   ]
 }

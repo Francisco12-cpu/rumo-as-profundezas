@@ -73,6 +73,156 @@
       "respostaCorreta": 1,
       "tempoSegundos": 10,
       "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 8,
+      "categoria": "Geografia",
+      "tipo": "multipla_escolha",
+      "pergunta": "Qual é o maior país do mundo em área?",
+      "opcoes": ["Rússia", "Canadá", "China", "Estados Unidos"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 20,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 9,
+      "categoria": "Geografia",
+      "tipo": "multipla_escolha",
+      "pergunta": "Qual é o rio mais longo do mundo?",
+      "opcoes": ["Nilo", "Amazonas", "Mississippi", "Yangtzé"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 20,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 10,
+      "categoria": "Geografia",
+      "tipo": "multipla_escolha",
+      "pergunta": "Em qual continente fica o Egito?",
+      "opcoes": ["África", "Ásia", "Europa", "América do Sul"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 11,
+      "categoria": "Ciência",
+      "tipo": "multipla_escolha",
+      "pergunta": "Quantos planetas existem no Sistema Solar?",
+      "opcoes": ["7", "8", "9", "10"],
+      "respostaCorreta": 1,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 12,
+      "categoria": "Ciência",
+      "tipo": "multipla_escolha",
+      "pergunta": "Qual é o órgão responsável por bombear o sangue no corpo humano?",
+      "opcoes": ["Coração", "Pulmão", "Fígado", "Rim"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 13,
+      "categoria": "Ciência",
+      "tipo": "verdadeiro_falso",
+      "pergunta": "A água ferve a 100°C ao nível do mar.",
+      "opcoes": ["Verdadeiro", "Falso"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "jogar_novamente", "erro": "nenhum" }
+    },
+    {
+      "id": 14,
+      "categoria": "Ciência",
+      "tipo": "multipla_escolha",
+      "pergunta": "Qual gás os seres humanos precisam respirar para sobreviver?",
+      "opcoes": ["Oxigênio", "Gás carbônico", "Nitrogênio", "Hidrogênio"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 15,
+      "categoria": "História",
+      "tipo": "multipla_escolha",
+      "pergunta": "Quem foi o primeiro presidente do Brasil?",
+      "opcoes": ["Deodoro da Fonseca", "Getúlio Vargas", "Dom Pedro II", "Juscelino Kubitschek"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 20,
+      "efeitoCasa": { "acerto": "avancar_2", "erro": "voltar_2" }
+    },
+    {
+      "id": 16,
+      "categoria": "História",
+      "tipo": "multipla_escolha",
+      "pergunta": "Em que ano começou a Segunda Guerra Mundial?",
+      "opcoes": ["1935", "1939", "1941", "1945"],
+      "respostaCorreta": 1,
+      "tempoSegundos": 20,
+      "efeitoCasa": { "acerto": "avancar_2", "erro": "voltar_2" }
+    },
+    {
+      "id": 17,
+      "categoria": "Esportes",
+      "tipo": "multipla_escolha",
+      "pergunta": "Quantos jogadores de cada time ficam em campo no futebol?",
+      "opcoes": ["9", "10", "11", "12"],
+      "respostaCorreta": 2,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 18,
+      "categoria": "Esportes",
+      "tipo": "multipla_escolha",
+      "pergunta": "Em que esporte se usa uma raquete e uma bolinha amarela, em uma quadra dividida por rede?",
+      "opcoes": ["Tênis", "Vôlei", "Badminton", "Squash"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 19,
+      "categoria": "Matemática",
+      "tipo": "multipla_escolha",
+      "pergunta": "Quanto é 9 × 9?",
+      "opcoes": ["72", "81", "91", "99"],
+      "respostaCorreta": 1,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 20,
+      "categoria": "Matemática",
+      "tipo": "multipla_escolha",
+      "pergunta": "Quanto é a metade de 100?",
+      "opcoes": ["25", "40", "50", "60"],
+      "respostaCorreta": 2,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 21,
+      "categoria": "Artes",
+      "tipo": "multipla_escolha",
+      "pergunta": "Quem pintou a Mona Lisa?",
+      "opcoes": ["Leonardo da Vinci", "Pablo Picasso", "Vincent van Gogh", "Michelangelo"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 20,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
+    },
+    {
+      "id": 22,
+      "categoria": "Ciência",
+      "tipo": "multipla_escolha",
+      "pergunta": "Qual é a cor que resulta da mistura de azul e amarelo?",
+      "opcoes": ["Verde", "Roxo", "Laranja", "Marrom"],
+      "respostaCorreta": 0,
+      "tempoSegundos": 15,
+      "efeitoCasa": { "acerto": "avancar_1", "erro": "voltar_2" }
     }
   ]
 }
