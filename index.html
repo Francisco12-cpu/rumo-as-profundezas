@@ -71,6 +71,21 @@
                 aria-label="Configurações"
                 data-icon="ajustes"
             ></button>
+            <!-- Menu de ajustes da partida (interface/miniMenus.js) -->
+            <div class="quick-menu hidden" id="quick-menu" role="menu" aria-label="Ajustes">
+                <button class="quick-item" id="btn-hud-mute" role="menuitem">
+                    <span class="btn-mute quick-ico"></span><span data-i18n="quick_sound">Som</span>
+                </button>
+                <button class="quick-item" id="btn-legend" role="menuitem" data-icon="livro">
+                    <span data-i18n="quick_legend">O que cada casa faz</span>
+                </button>
+                <button class="quick-item" id="btn-quick-settings" role="menuitem" data-icon="ajustes">
+                    <span data-i18n="settings_title">Configurações</span>
+                </button>
+                <button class="quick-item quick-exit" id="btn-leave-game" role="menuitem" data-icon="sair">
+                    <span data-i18n="hud_leave_full">Sair da partida</span>
+                </button>
+            </div>
 
             <!-- ABERTURA (interface/vitrine.js/initSplash): logo, nome, "toque para continuar" -->
             <div class="splash-screen" id="splash-screen" role="button" tabindex="0" aria-label="Toque para continuar">
@@ -114,7 +129,6 @@
                 </svg>
                 <h1 class="splash-title" id="splash-title">Rumo às Profundezas</h1>
                 <p class="splash-tap">Toque para continuar</p>
-                <p class="splash-credit">Um jogo de Francisco Audir</p>
             </div>
 
             <!-- CARREGAMENTO DA PARTIDA (interface/transicao.js) -->
@@ -131,8 +145,10 @@
             <div class="screen active" id="screen-menu">
                 <div class="menu-panel">
                     <!-- Texto preenchido a partir de GAME_NAME (js/data/gameInfo.js) — ver applyGameName() em main.js -->
-                    <h1 class="menu-title" id="menu-game-title">Rumo às Profundezas</h1>
-                    <p class="menu-subtitle" data-i18n="menu_subtitle">Um jogo de perguntas no fundo do mar</p>
+                    <div class="menu-head">
+                        <h1 class="menu-title" id="menu-game-title">Rumo às Profundezas</h1>
+                        <p class="menu-subtitle" data-i18n="menu_subtitle">Um jogo de perguntas no fundo do mar</p>
+                    </div>
                     <div class="menu-buttons">
                         <button class="btn btn-wood btn-wood-gold hidden" id="btn-resume-game" data-icon="continuar">
                             <span data-i18n="btn_resume">Continuar Partida</span>
@@ -143,24 +159,36 @@
                         <button class="btn btn-wood" id="btn-new-local" data-icon="grupo">
                             <span data-i18n="btn_local">Jogar com Amigos</span>
                         </button>
-                        <div class="menu-row">
-                            <button class="btn btn-wood" id="btn-create-room" data-icon="rede">
+                        <!-- Online: um botão que abre as duas opções (menos botões na tela do celular) -->
+                        <button
+                            class="btn btn-wood"
+                            id="btn-online"
+                            data-icon="rede"
+                            aria-expanded="false"
+                            aria-controls="menu-online"
+                        >
+                            <span data-i18n="btn_online">Jogar Online</span>
+                        </button>
+                        <div class="menu-row menu-online hidden" id="menu-online">
+                            <button class="btn btn-wood btn-wood-small" id="btn-create-room" data-icon="rede">
                                 <span data-i18n="btn_host">Criar Sala</span>
                             </button>
-                            <button class="btn btn-wood" id="btn-join-room" data-icon="entrar">
+                            <button class="btn btn-wood btn-wood-small" id="btn-join-room" data-icon="entrar">
                                 <span data-i18n="btn_join">Entrar em Sala</span>
                             </button>
                         </div>
-                        <div class="menu-row">
-                            <button class="btn btn-wood btn-wood-small" id="btn-open-docs" data-icon="livro">
+                        <div class="menu-row menu-tiles">
+                            <button class="btn btn-wood btn-tile" id="btn-open-docs" data-icon="livro">
                                 <span data-i18n="btn_rules">Regras</span>
                             </button>
-                            <button class="btn btn-wood btn-wood-small" id="btn-open-deck" data-icon="cartas">
+                            <button class="btn btn-wood btn-tile" id="btn-open-deck" data-icon="cartas">
                                 <span data-i18n="btn_deck">Perguntas</span>
+                            </button>
+                            <button class="btn btn-wood btn-tile" id="btn-open-credits" data-icon="estrela">
+                                <span data-i18n="btn_credits">Créditos</span>
                             </button>
                         </div>
                     </div>
-                    <p class="menu-credit">Criado por Francisco Audir</p>
                 </div>
             </div>
 
@@ -201,8 +229,13 @@
                             <option value="all" data-i18n="bank_all">Todos os bancos (aleatório)</option>
                         </select>
                     </div>
+                    <div class="setup-group" id="setup-character-group">
+                        <div class="setup-label" data-i18n="label_pick_character">Escolha seu personagem</div>
+                        <div class="char-tabs hidden" id="char-tabs"></div>
+                        <div class="char-grid" id="char-grid"></div>
+                    </div>
                     <div class="setup-group" id="setup-token-set-group">
-                        <div class="setup-label" data-i18n="label_token_set">Personagens</div>
+                        <div class="setup-label" data-i18n="label_token_set">Sorteio entre</div>
                         <select class="setup-select" id="setup-token-set">
                             <option value="classicos" data-i18n="opt_tokens_classic">
                                 Clássicos (Bob, Patrick...)
@@ -241,20 +274,6 @@
                 <div class="hud-top">
                     <div class="hud-players" id="hud-players"></div>
                     <div class="hud-top-right">
-                        <button
-                            class="btn-hud-round btn-mute"
-                            id="btn-hud-mute"
-                            data-icon="som"
-                            aria-label="Ligar/desligar o som"
-                            title="Ligar/desligar o som"
-                        ></button>
-                        <button
-                            class="btn-hud-round"
-                            id="btn-legend"
-                            data-icon="livro"
-                            aria-label="O que cada casa faz"
-                            title="O que cada casa faz"
-                        ></button>
                         <div class="hud-room-code" id="hud-room-code" style="display: none">
                             <span><span data-i18n="hud_room">Sala:</span> <code id="hud-room-code-text"></code></span>
                             <button
@@ -267,17 +286,6 @@
                                 Copiar
                             </button>
                         </div>
-                        <button
-                            class="btn-leave-game"
-                            id="btn-leave-game"
-                            data-icon="sair"
-                            data-i18n="hud_leave"
-                            data-i18n-title="hud_leave"
-                            title="Sair da partida"
-                            aria-label="Sair da partida"
-                        >
-                            Sair
-                        </button>
                     </div>
                 </div>
                 <div id="turn-banner" class="turn-banner hidden" data-i18n="hud_your_turn">SUA VEZ!</div>
@@ -323,36 +331,49 @@
                     </div>
                 </div>
 
-                <div class="camera-buttons">
+                <div class="camera-buttons" id="camera-buttons">
+                    <div class="camera-options" id="camera-options">
+                        <button
+                            class="btn-camera"
+                            id="btn-camera-fly"
+                            aria-label="Voar pelo fundo do mar"
+                            title="Voar pelo fundo do mar"
+                            data-icon="voar"
+                            data-i18n="hud_camera_fly"
+                        >
+                            <span class="cam-label">Voar</span>
+                        </button>
+                        <button
+                            class="btn-camera"
+                            id="btn-camera-focus"
+                            data-icon="alvo"
+                            data-i18n="hud_camera_focus"
+                            aria-label="Ver personagem"
+                            title="Ver personagem"
+                        >
+                            <span class="cam-label">Ver personagem</span>
+                        </button>
+                        <button
+                            class="btn-camera"
+                            id="btn-camera-overview"
+                            data-icon="mapa"
+                            data-i18n="hud_camera_overview"
+                            aria-label="Ver tabuleiro"
+                            title="Ver tabuleiro"
+                        >
+                            <span class="cam-label">Ver tabuleiro</span>
+                        </button>
+                    </div>
                     <button
-                        class="btn-camera"
-                        id="btn-camera-fly"
-                        aria-label="Voar pelo fundo do mar"
-                        title="Voar pelo fundo do mar"
-                        data-icon="voar"
-                        data-i18n="hud_camera_fly"
+                        class="btn-camera btn-camera-menu"
+                        id="btn-camera-menu"
+                        data-icon="camera"
+                        aria-label="Câmera"
+                        aria-expanded="false"
+                        aria-controls="camera-options"
+                        title="Câmera"
                     >
-                        <span class="cam-label">Voar</span>
-                    </button>
-                    <button
-                        class="btn-camera"
-                        id="btn-camera-focus"
-                        data-icon="alvo"
-                        data-i18n="hud_camera_focus"
-                        aria-label="Ver personagem"
-                        title="Ver personagem"
-                    >
-                        <span class="cam-label">Ver personagem</span>
-                    </button>
-                    <button
-                        class="btn-camera"
-                        id="btn-camera-overview"
-                        data-icon="mapa"
-                        data-i18n="hud_camera_overview"
-                        aria-label="Ver tabuleiro"
-                        title="Ver tabuleiro"
-                    >
-                        <span class="cam-label">Ver tabuleiro</span>
+                        <span class="cam-label" data-i18n="hud_camera">Câmera</span>
                     </button>
                 </div>
                 <div class="hud-bottom">
@@ -365,6 +386,27 @@
             </div>
 
             <!-- LEGENDA DAS CASAS (montada de TILE_TYPES em ui.js/openLegend) -->
+            <!-- CRÉDITOS (interface/creditos.js; nomes em data/creditos.json) -->
+            <div
+                class="modal-overlay hidden"
+                id="credits-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="credits-title"
+            >
+                <div class="modal-card credits-card">
+                    <div class="credits-bubbles" aria-hidden="true">
+                        <span></span><span></span><span></span><span></span><span></span><span></span>
+                    </div>
+                    <img class="credits-logo" src="assets/icons/icon-192.png" alt="" />
+                    <h3 class="credits-title" id="credits-title">Créditos</h3>
+                    <p class="credits-subtitle" id="credits-subtitle"></p>
+                    <ul class="credits-list" id="credits-list"></ul>
+                    <p class="credits-thanks" id="credits-thanks"></p>
+                    <button class="btn btn-primary btn-sm" id="btn-credits-close" data-icon="ok">Fechar</button>
+                </div>
+            </div>
+
             <div
                 class="modal-overlay hidden"
                 id="legend-modal"
@@ -518,6 +560,8 @@
                             personagens pertencem à Nickelodeon/Paramount — este jogo não tem qualquer afiliação oficial
                             com eles.
                         </p>
+                        <h3>Créditos</h3>
+                        <p class="docs-credits">Ideia, criação e testes: Francisco Audir.</p>
                     </div>
                     <button
                         class="btn btn-danger btn-sm mt-16"
@@ -740,6 +784,9 @@
         <script src="js/interface/ui.js"></script>
         <script src="js/interface/vitrine.js"></script>
         <script src="js/interface/transicao.js"></script>
+        <script src="js/interface/escolhaPersonagem.js"></script>
+        <script src="js/interface/creditos.js"></script>
+        <script src="js/interface/miniMenus.js"></script>
         <script src="js/nucleo/main.js"></script>
 
         <!-- Service worker do PWA (sw.js, gerado por tools/gerar-sw.mjs). Fora de

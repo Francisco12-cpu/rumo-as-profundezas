@@ -521,227 +521,366 @@ function buildPatrickPawn(colorHex) {
     return root;
 }
 
-// ==================== LULA MOLUSCO ====================
-// Raio da cabeça (lâmpada: queixo estreito, domo largo e redondo em cima).
-const LULA_HEAD_H = 0.62;
-function lulaHeadRadius(u) {
-    if (u < 0.35) return 0.1 + 0.05 * (u / 0.35);
-    const k = (u - 0.35) / 0.65; // 0..1 até o topo
-    // Domo: cresce e fecha como uma esfera achatada.
-    return (
-        0.15 +
-        0.1 * Math.sin(Math.min(1, k * 1.6) * Math.PI * 0.5) -
-        (k > 0.62 ? 0.25 * (1 - Math.sqrt(1 - ((k - 0.62) / 0.38) ** 2)) : 0)
-    );
+// Peças do rosto que "abraçam" a superfície curva (boca, dentes, gola): a
+// forma é desenhada no plano e cada vértice é empurrado até a superfície da
+// frente (zAt(x, y) + lift). Assim a boca não fica flutuando nem enterrada
+// num corpo redondo (uma forma plana num corpo curvo só encosta num ponto).
+// Os triângulos do ShapeGeometry são divididos até ficarem pequenos (o
+// contorno continua exato): um triângulo comprido atravessaria a curva por
+// dentro e o corpo "furaria" a peça no meio (listra vermelha nos dentes).
+function surfaceDecal(shape, zAt, mat, parent, lift = 0.002, curveSegs = 16) {
+    const flat = new THREE.ShapeGeometry(shape, cseg(curveSegs)).toNonIndexed();
+    const src = flat.attributes.position.array;
+    const pos = [];
+    const MAX = 0.012;
+    const split = (a, b, c, depth) => {
+        const d = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1]);
+        if (depth > 6 || Math.max(d(a, b), d(b, c), d(c, a)) < MAX) {
+            for (const v of [a, b, c]) pos.push(v[0], v[1], zAt(v[0], v[1]) + lift);
+            return;
+        }
+        const m = (p, q) => [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2];
+        const ab = m(a, b);
+        const bc = m(b, c);
+        const ca = m(c, a);
+        split(a, ab, ca, depth + 1);
+        split(ab, b, bc, depth + 1);
+        split(ca, bc, c, depth + 1);
+        split(ab, bc, ca, depth + 1);
+    };
+    for (let i = 0; i < src.length; i += 9) {
+        split([src[i], src[i + 1]], [src[i + 3], src[i + 4]], [src[i + 6], src[i + 7]], 0);
+    }
+    flat.dispose();
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geo.computeVertexNormals();
+    const m = addMesh(geo, mat, parent);
+    m.castShadow = false;
+    return m;
 }
 
+function roundedRectShape(cx, cy, w, h, r) {
+    const s = new THREE.Shape();
+    const x = cx - w / 2;
+    const y = cy - h / 2;
+    s.moveTo(x + r, y);
+    s.lineTo(x + w - r, y);
+    s.quadraticCurveTo(x + w, y, x + w, y + r);
+    s.lineTo(x + w, y + h - r);
+    s.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    s.lineTo(x + r, y + h);
+    s.quadraticCurveTo(x, y + h, x, y + h - r);
+    s.lineTo(x, y + r);
+    s.quadraticCurveTo(x, y, x + r, y);
+    return s;
+}
+
+// Esfera deformada: largura em X/Z varia com a altura (widthAt(yn), yn de -1
+// embaixo a 1 em cima). Devolve a malha e a função da superfície da frente.
+function shapedBlob(parent, mat, cx, cy, rx, ry, rz, widthAt, opts = {}) {
+    const geo = new THREE.SphereGeometry(
+        1,
+        cseg(opts.ws || 40),
+        cseg(opts.hs || 28),
+        0,
+        Math.PI * 2,
+        opts.thetaStart || 0,
+        opts.thetaLength || Math.PI
+    );
+    const p = geo.attributes.position;
+    for (let i = 0; i < p.count; i++) {
+        const y = p.getY(i);
+        const w = widthAt(y);
+        p.setXYZ(i, p.getX(i) * rx * w, y * ry, p.getZ(i) * rz * (opts.zWidth === false ? 1 : w));
+    }
+    geo.computeVertexNormals();
+    const mesh = addMesh(geo, mat, parent, cx, cy, 0);
+    const zAt = (x, y) => {
+        const yn = Math.max(-1, Math.min(1, (y - cy) / ry));
+        const w = widthAt(yn);
+        const q = 1 - yn * yn - ((x - cx) / (rx * w)) ** 2;
+        return rz * (opts.zWidth === false ? 1 : w) * Math.sqrt(Math.max(0, q));
+    };
+    return { mesh, zAt };
+}
+
+// Tubo que segue pontos com a grossura variando ao longo dele (rAt(t), t de 0
+// a 1) e ponta arredondada (meia esfera do mesmo raio do fim).
+function shapedTube(parent, points, rAt, mat, capEnd = true) {
+    const curve = new THREE.CatmullRomCurve3(points);
+    const ts = cseg(24);
+    const rs = cseg(12);
+    const geo = new THREE.TubeGeometry(curve, ts, 1, rs, false);
+    const p = geo.attributes.position;
+    const P = new THREE.Vector3();
+    const v = new THREE.Vector3();
+    for (let i = 0; i <= ts; i++) {
+        curve.getPointAt(i / ts, P);
+        const r = rAt(i / ts);
+        for (let j = 0; j <= rs; j++) {
+            const idx = i * (rs + 1) + j;
+            v.fromBufferAttribute(p, idx).sub(P).multiplyScalar(r).add(P);
+            p.setXYZ(idx, v.x, v.y, v.z);
+        }
+    }
+    geo.computeVertexNormals();
+    const m = addMesh(geo, mat, parent);
+    if (capEnd) {
+        const end = curve.getPointAt(1);
+        addMesh(new THREE.SphereGeometry(rAt(1), cseg(14), cseg(10)), mat, parent, end.x, end.y, end.z);
+    }
+    return m;
+}
+
+// ==================== LULA MOLUSCO ====================
+// 3ª versão, "fofinha" (no estilo dos bichos do kit): cabeção liso em forma
+// de ovo, olhos enormes e brilhantes com pálpebra leve, narizinho em gota
+// caído entre os olhos, bochechas rosadas e um sorrisinho de canto. Corpo
+// pequeno: camiseta curta, bracinhos e quatro tentáculos gordinhos.
 function buildLulaMoluscoPawn(colorHex) {
     const root = makeRig(colorHex);
     const rig = root.userData.rig;
     const b = rig.body;
-    const skin = toyMaterial(0x9fd4c4, { roughness: 0.5, clearcoat: 0.35 });
-    const skinDark = toyMaterial(0x7fb9a8, { roughness: 0.55, clearcoat: 0.25 });
-    const shirt = toyMaterial(0x9a5d2c, { roughness: 0.7, clearcoat: 0.1 });
-    const HEAD_Y = 0.48;
+    const skin = toyMaterial(0x97d9cb, { roughness: 0.38, clearcoat: 0.55 });
+    const skinShade = toyMaterial(0x7ec4b5, { roughness: 0.42, clearcoat: 0.45 });
+    const shirt = toyMaterial(0xa8642f, { roughness: 0.65, clearcoat: 0.1 });
+    const dark = toyMaterial(0x2b1418, { roughness: 0.6, clearcoat: 0 });
 
-    const prof = [];
-    for (let i = 0; i <= 24; i++) {
-        const u = i / 24;
-        prof.push(new THREE.Vector2(Math.max(0.002, lulaHeadRadius(u)), u * LULA_HEAD_H));
-    }
-    prof.push(new THREE.Vector2(0.001, LULA_HEAD_H));
-    const head = addMesh(new THREE.LatheGeometry(prof, cseg(28)), skin, b, 0, HEAD_Y, 0);
-    head.scale.z = 0.9;
-    // Ponto da superfície da cabeça, de frente, numa altura y (o rosto vai ali).
-    const surfaceZ = (y, x = 0) => {
-        const r = lulaHeadRadius((y - HEAD_Y) / LULA_HEAD_H) * 0.9;
-        return Math.sqrt(Math.max(0, r * r - x * x));
-    };
-    // Olhos grandes com pálpebras pesadas (o jeito mal-humorado dele).
+    // Cabeça: larga em cima, queixo mais estreito (mas tudo redondinho).
+    const HY = 0.67;
+    const headW = (yn) => 0.84 + 0.13 * yn - 0.05 * yn * yn;
+    const head = shapedBlob(b, skin, 0, HY, 0.25, 0.28, 0.23, headW);
+    const zAt = head.zAt;
+
+    // Olhos grandes, com a pálpebra cobrindo só o alto (cara de sono, não de bravo).
+    const EY = 0.69;
     for (const sx of [-1, 1]) {
-        const ex = sx * 0.07;
-        const ey = 0.78;
-        const ez = surfaceZ(ey, ex) - 0.02;
+        const ex = sx * 0.088;
+        const ez = zAt(ex, EY) - 0.04;
         rig.eyes.push(
-            classicEye(b, 0.064, new THREE.Vector3(ex, ey, ez), 0xd94a2a, new THREE.Vector3(sx * 0.18, 0, 1))
+            classicEye(b, 0.085, new THREE.Vector3(ex, EY, ez), 0x7a2a1c, new THREE.Vector3(sx * 0.16, 0, 1), {
+                iris: 0.66,
+            })
         );
         const lid = addMesh(
-            new THREE.SphereGeometry(0.069, cseg(16), cseg(8), 0, Math.PI * 2, 0, Math.PI * 0.5),
-            skinDark,
+            new THREE.SphereGeometry(0.09, cseg(20), cseg(10), 0, Math.PI * 2, 0, Math.PI * 0.5),
+            skinShade,
             b,
             ex,
-            ey + 0.004,
+            EY,
             ez
         );
-        lid.rotation.x = 0.5;
+        lid.rotation.set(-0.62, 0, -sx * 0.1);
         lid.castShadow = false;
     }
-    // Nariz comprido e caído (a marca dele): sai do meio do rosto, vai pra
-    // frente e cai por cima da boca, AFINANDO até a ponta, que é arredondada e
-    // do mesmo tamanho do tubo — sem bola na ponta (que dava outra impressão).
-    const nz = surfaceZ(0.74) - 0.012;
-    const noseTip = new THREE.Vector3(0, 0.575, nz + 0.13);
-    const nose = limb(
-        b,
-        [
-            new THREE.Vector3(0, 0.745, nz),
-            new THREE.Vector3(0, 0.73, nz + 0.075),
-            new THREE.Vector3(0, 0.665, nz + 0.12),
-            noseTip,
-        ],
-        0.04,
-        skin,
-        0.026
-    );
-    nose.scale.x = 1.15;
-    addMesh(new THREE.SphereGeometry(0.026, 12, 10), skin, b, noseTip.x, noseTip.y, noseTip.z).scale.x = 1.15;
-    // Dobrinha na raiz do nariz (entre os olhos), pra ele não parecer colado.
-    const bridge = addMesh(new THREE.SphereGeometry(0.05, 14, 10), skin, b, 0, 0.75, nz - 0.01);
-    bridge.scale.set(1.1, 0.7, 0.6);
-    // Boca torta (meio sorriso pra baixo), embaixo do nariz.
-    const mouth = smileArc(
-        b,
-        0.045,
-        0.009,
-        new THREE.Vector3(0.05, 0.57, surfaceZ(0.57, 0.05) + 0.004),
-        0x2b1418,
-        Math.PI * 0.7
-    );
-    mouth.rotation.z = 0.35;
-    // Camisa marrom.
-    addMesh(new THREE.CylinderGeometry(0.11, 0.16, 0.22, cseg(20)), shirt, b, 0, 0.38, 0);
-    // Braços finos (pivô no ombro).
+
+    // Narizinho: uma gota macia que nasce entre os olhos e cai um pouco pra
+    // frente, até logo acima da boca.
+    const nose = addMesh(new THREE.SphereGeometry(1, cseg(18), cseg(14)), skin, b, 0, 0.6, zAt(0, 0.6) + 0.03);
+    nose.scale.set(0.04, 0.095, 0.047);
+    nose.rotation.x = -0.32;
+    const root2 = addMesh(new THREE.SphereGeometry(0.04, cseg(14), cseg(10)), skin, b, 0, 0.66, zAt(0, 0.66) - 0.01);
+    root2.scale.set(1.1, 0.9, 0.8);
+
+    // Sorrisinho de canto e bochechas.
+    const MY = 0.505;
+    const smile = new THREE.Shape();
+    smile.moveTo(-0.055, MY + 0.008);
+    smile.quadraticCurveTo(0, MY - 0.03, 0.06, MY + 0.014);
+    smile.quadraticCurveTo(0, MY - 0.014, -0.055, MY + 0.008);
+    surfaceDecal(smile, zAt, dark, b, 0.003);
+    for (const sx of [-1, 1]) {
+        const cx = sx * 0.155;
+        cheek(b, new THREE.Vector3(cx, 0.565, zAt(cx, 0.565) + 0.003), 0.04, 0xff9fb6).rotation.y = sx * 0.55;
+    }
+
+    // Camiseta curtinha (torno), mangas e bracinhos.
+    const prof = [
+        [0.001, 0.16],
+        [0.15, 0.16],
+        [0.16, 0.18],
+        [0.15, 0.3],
+        [0.12, 0.4],
+        [0.001, 0.41],
+    ].map(([x, y]) => new THREE.Vector2(x, y));
+    addMesh(new THREE.LatheGeometry(prof, cseg(28)), shirt, b).scale.z = 0.88;
     for (const side of [-1, 1]) {
         const pivot = new THREE.Group();
-        pivot.position.set(side * 0.13, 0.46, 0);
+        pivot.position.set(side * 0.13, 0.35, 0);
         b.add(pivot);
-        addMesh(new THREE.CylinderGeometry(0.04, 0.035, 0.06, 10), shirt, pivot, side * 0.02, 0, 0).rotation.z =
-            side * 1.1;
-        limb(
+        addMesh(new THREE.SphereGeometry(0.05, cseg(14), cseg(10)), shirt, pivot, side * 0.015, 0, 0);
+        shapedTube(
             pivot,
             [
-                new THREE.Vector3(side * 0.03, -0.01, 0),
-                new THREE.Vector3(side * 0.07, -0.14, 0.03),
-                new THREE.Vector3(side * 0.06, -0.25, 0.06),
+                new THREE.Vector3(side * 0.04, -0.02, 0),
+                new THREE.Vector3(side * 0.08, -0.09, 0.02),
+                new THREE.Vector3(side * 0.08, -0.15, 0.04),
             ],
-            0.017,
-            skin
+            () => 0.022,
+            skin,
+            false
         );
+        addMesh(new THREE.SphereGeometry(0.036, cseg(12), cseg(10)), skin, pivot, side * 0.08, -0.165, 0.045);
         rig.arms.push({ pivot, side });
     }
-    // Quatro tentáculos-pernas enrolando na ponta.
+
+    // Quatro tentáculos gordinhos, enrolando pra fora na pontinha.
     for (let k = 0; k < 4; k++) {
         const a = (k / 4) * Math.PI * 2 + Math.PI / 4;
         const dx = Math.cos(a);
         const dz = Math.sin(a);
-        limb(
+        shapedTube(
             b,
             [
-                new THREE.Vector3(dx * 0.06, 0.28, dz * 0.06),
-                new THREE.Vector3(dx * 0.12, 0.12, dz * 0.12),
-                new THREE.Vector3(dx * 0.22, 0.03, dz * 0.22),
-                new THREE.Vector3(dx * 0.27, 0.07, dz * 0.27),
+                new THREE.Vector3(dx * 0.06, 0.18, dz * 0.05),
+                new THREE.Vector3(dx * 0.11, 0.07, dz * 0.1),
+                new THREE.Vector3(dx * 0.18, 0.03, dz * 0.16),
+                new THREE.Vector3(dx * 0.22, 0.07, dz * 0.2),
             ],
-            0.04,
-            skin,
-            0.016
+            (t) => 0.06 * (1 - t * 0.55),
+            skin
         );
     }
     return root;
 }
 
 // ==================== SR. SIRIGUEJO ====================
+// 3ª versão, "fofinha": uma bola vermelha lisa com olhões em antenas
+// curtinhas, sorrisão simples com uma fileira de dentes, bochechas, camisa
+// azul-clara na parte de baixo e garras redondas de pinça (como o
+// caranguejo do kit). Perninhas curtas.
 function buildSrSiriguejoPawn(colorHex) {
     const root = makeRig(colorHex);
     const rig = root.userData.rig;
     const b = rig.body;
-    const red = toyMaterial(0xe8483a, { roughness: 0.4, clearcoat: 0.6 });
-    const redDark = toyMaterial(0xb8322a, { roughness: 0.45, clearcoat: 0.5 });
-    const shirt = toyMaterial(0x5aa7e6, { roughness: 0.6, clearcoat: 0.15 });
-    const dark = toyMaterial(0x2b1418, { roughness: 0.5, clearcoat: 0 });
+    const red = toyMaterial(0xec4632, { roughness: 0.32, clearcoat: 0.8 });
+    const redDark = toyMaterial(0xc03224, { roughness: 0.4, clearcoat: 0.6 });
+    const shirt = toyMaterial(0x95d2f4, { roughness: 0.55, clearcoat: 0.2 });
+    const dark = toyMaterial(0x220707, { roughness: 0.7, clearcoat: 0 });
 
-    // Corpo largo e achatado.
-    const body = addMesh(new THREE.SphereGeometry(0.3, cseg(28), cseg(20)), red, b, 0, 0.42, 0);
-    body.scale.set(1.15, 1, 0.85);
-    // Camisa azul na metade de baixo + cinto.
-    const shirtM = addMesh(
-        new THREE.SphereGeometry(0.305, cseg(28), cseg(12), 0, Math.PI * 2, Math.PI * 0.5, Math.PI * 0.32),
-        shirt,
-        b,
-        0,
-        0.42,
-        0
-    );
-    shirtM.scale.set(1.15, 1, 0.85);
-    addMesh(new THREE.TorusGeometry(0.33, 0.018, 6, cseg(28)), toyMaterial(0x3b2a1e), b, 0, 0.3, 0).scale.set(
-        1.04,
-        0.86,
-        1
-    );
-    // Olhos em antenas.
+    const CY = 0.42;
+    const RX = 0.29;
+    const RY = 0.28;
+    const RZ = 0.26;
+    const bodyW = (yn) => 1 + 0.07 * yn;
+    const body = shapedBlob(b, red, 0, CY, RX, RY, RZ, bodyW);
+    const zAt = body.zAt;
+
+    // Camisa: a metade de baixo, com uma golinha.
+    shapedBlob(b, shirt, 0, CY, RX * 1.025, RY * 1.02, RZ * 1.03, bodyW, {
+        thetaStart: Math.PI * 0.64,
+        thetaLength: Math.PI * 0.36,
+        hs: 12,
+    });
+    const shirtTop = CY + Math.cos(Math.PI * 0.64) * RY * 1.02;
+    const zShirt = (x, y) => zAt(x, y) * 1.03 + 0.004;
     for (const sx of [-1, 1]) {
-        limb(
+        const g = new THREE.Shape();
+        g.moveTo(sx * 0.01, shirtTop + 0.003);
+        g.quadraticCurveTo(sx * 0.07, shirtTop + 0.02, sx * 0.1, shirtTop + 0.006);
+        g.quadraticCurveTo(sx * 0.06, shirtTop - 0.04, sx * 0.01, shirtTop + 0.003);
+        surfaceDecal(g, zShirt, toyMaterial(0x6fb3dd, { roughness: 0.55 }), b, 0.004, 8);
+    }
+
+    // Sorrisão: forma de meia-lua escura, com os dentes de cima numa faixa
+    // só (arredondada) e a língua no fundo.
+    const MY = 0.47;
+    const mouth = new THREE.Shape();
+    mouth.moveTo(-0.13, MY + 0.02);
+    mouth.quadraticCurveTo(0, MY + 0.005, 0.13, MY + 0.02);
+    mouth.quadraticCurveTo(0.12, MY - 0.09, 0, MY - 0.1);
+    mouth.quadraticCurveTo(-0.12, MY - 0.09, -0.13, MY + 0.02);
+    surfaceDecal(mouth, zAt, dark, b, 0.003);
+    const tongue = new THREE.Shape();
+    tongue.moveTo(-0.06, MY - 0.065);
+    tongue.quadraticCurveTo(0, MY - 0.035, 0.06, MY - 0.065);
+    tongue.quadraticCurveTo(0, MY - 0.105, -0.06, MY - 0.065);
+    surfaceDecal(tongue, zAt, toyMaterial(0xff7f93, { clearcoat: 0 }), b, 0.005);
+    const teeth = new THREE.Shape();
+    teeth.moveTo(-0.1, MY + 0.012);
+    teeth.quadraticCurveTo(0, MY + 0.0, 0.1, MY + 0.012);
+    teeth.lineTo(0.092, MY - 0.018);
+    teeth.quadraticCurveTo(0, MY - 0.03, -0.092, MY - 0.018);
+    teeth.lineTo(-0.1, MY + 0.012);
+    surfaceDecal(teeth, zAt, new THREE.MeshBasicMaterial({ color: 0xfbfbf4 }), b, 0.009);
+    for (const sx of [-1, 1]) {
+        const cx = sx * 0.19;
+        cheek(b, new THREE.Vector3(cx, 0.5, zAt(cx, 0.5) + 0.004), 0.045, 0xff9fb0).rotation.y = sx * 0.6;
+    }
+
+    // Olhões em antenas curtinhas.
+    for (const sx of [-1, 1]) {
+        const baseY = CY + RY * 0.85;
+        const bx = sx * 0.08;
+        const bz = zAt(bx, baseY) - 0.03;
+        shapedTube(
             b,
             [
-                new THREE.Vector3(sx * 0.08, 0.66, 0.08),
-                new THREE.Vector3(sx * 0.1, 0.8, 0.1),
-                new THREE.Vector3(sx * 0.11, 0.9, 0.1),
+                new THREE.Vector3(bx, baseY, bz),
+                new THREE.Vector3(sx * 0.095, 0.75, bz + 0.02),
+                new THREE.Vector3(sx * 0.105, 0.8, bz + 0.03),
             ],
-            0.018,
-            red
+            () => 0.024,
+            red,
+            false
         );
         rig.eyes.push(
-            classicEye(b, 0.065, new THREE.Vector3(sx * 0.11, 0.93, 0.11), 0x1a6ad9, new THREE.Vector3(sx * 0.1, 0, 1))
+            classicEye(
+                b,
+                0.085,
+                new THREE.Vector3(sx * 0.108, 0.86, bz + 0.04),
+                0x1c2f66,
+                new THREE.Vector3(sx * 0.1, 0, 1),
+                {
+                    iris: 0.66,
+                }
+            )
         );
-        const brow = addMesh(new THREE.CapsuleGeometry(0.012, 0.05, 4, 8), dark, b, sx * 0.1, 1.01, 0.13);
-        brow.rotation.z = Math.PI / 2 - sx * 0.3;
     }
-    // Sorrisão com dentes.
-    smileArc(b, 0.12, 0.018, new THREE.Vector3(0, 0.52, 0.24));
-    for (const x of [-0.06, 0, 0.06])
-        addMesh(new THREE.BoxGeometry(0.035, 0.03, 0.02), toyMaterial(0xffffff), b, x, 0.485, 0.245);
-    // Garras grandes (pivô no ombro), cada uma com duas "pinças".
+
+    // Garras redondas: um "C" grosso (pinça aberta pra cima), num bracinho curto.
     for (const side of [-1, 1]) {
         const pivot = new THREE.Group();
-        pivot.position.set(side * 0.32, 0.44, 0.04);
+        pivot.position.set(side * 0.27, CY - 0.02, 0.03);
         b.add(pivot);
-        limb(
+        shapedTube(
             pivot,
             [
                 new THREE.Vector3(0, 0, 0),
-                new THREE.Vector3(side * 0.1, 0.05, 0.05),
-                new THREE.Vector3(side * 0.14, 0.14, 0.09),
+                new THREE.Vector3(side * 0.08, 0.05, 0.03),
+                new THREE.Vector3(side * 0.11, 0.12, 0.06),
             ],
-            0.035,
-            red
+            () => 0.035,
+            red,
+            false
         );
-        const claw = new THREE.Group();
-        claw.position.set(side * 0.15, 0.2, 0.1);
-        pivot.add(claw);
-        const upper = addMesh(new THREE.SphereGeometry(0.09, cseg(16), cseg(12)), redDark, claw, 0, 0.03, 0);
-        upper.scale.set(0.8, 1.2, 0.6);
-        const tip = addMesh(new THREE.ConeGeometry(0.045, 0.1, 10), red, claw, side * 0.04, 0.14, 0);
-        tip.rotation.z = -side * 0.4;
-        const lower = addMesh(new THREE.ConeGeometry(0.035, 0.08, 10), red, claw, -side * 0.04, 0.12, 0);
-        lower.rotation.z = side * 0.5;
+        const claw = addMesh(
+            new THREE.TorusGeometry(0.075, 0.048, cseg(12), cseg(24), Math.PI * 1.55),
+            red,
+            pivot,
+            side * 0.12,
+            0.2,
+            0.07
+        );
+        // A abertura do "C" fica pra cima e um pouco pra fora.
+        claw.rotation.set(0, side * 0.35, Math.PI * 0.5 + Math.PI * 0.225 - side * 0.25);
+        addMesh(new THREE.SphereGeometry(0.05, cseg(14), cseg(10)), redDark, pivot, side * 0.115, 0.135, 0.065);
         rig.arms.push({ pivot, side });
     }
-    // Perninhas pontudas.
+
+    // Perninhas curtas e pontudas.
     for (const side of [-1, 1]) {
-        for (let k = 0; k < 2; k++) {
-            const z = (k - 0.5) * 0.14;
-            limb(
-                b,
-                [
-                    new THREE.Vector3(side * 0.18, 0.2, z),
-                    new THREE.Vector3(side * 0.24, 0.1, z),
-                    new THREE.Vector3(side * 0.22, 0.01, z),
-                ],
-                0.022,
-                red,
-                0.008
-            );
-        }
+        shapedTube(
+            b,
+            [
+                new THREE.Vector3(side * 0.09, CY - RY + 0.05, 0),
+                new THREE.Vector3(side * 0.11, 0.07, 0.01),
+                new THREE.Vector3(side * 0.12, 0.0, 0.03),
+            ],
+            (t) => 0.034 * (1 - t * 0.6),
+            red
+        );
     }
     return root;
 }

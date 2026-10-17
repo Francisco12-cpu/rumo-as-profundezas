@@ -1,0 +1,12 @@
+{
+    "titulo": "Créditos",
+    "subtitulo": "Quem fez o Rumo às Profundezas",
+    "pessoas": [
+        {
+            "nome": "Francisco Audir",
+            "papel": "Criação, ideia e testes",
+            "instagram": ""
+        }
+    ],
+    "agradecimento": "Obrigado por jogar!"
+}

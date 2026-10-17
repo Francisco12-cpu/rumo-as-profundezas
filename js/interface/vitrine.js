@@ -168,9 +168,11 @@ function updateMenuShowcase(elapsed) {
     // à direita (o menu ocupa a esquerda); no celular, em cima.
     const portrait = camera.aspect < 1;
     const swing = Math.sin(elapsed * 0.12) * 0.35;
-    const dist = portrait ? 11.5 : 8.6;
+    // No celular a câmera mira bem abaixo do palco: os personagens sobem na
+    // tela e ficam no espaço livre entre o título (em cima) e os botões.
+    const dist = portrait ? 11 : 8.6;
     const tx = portrait ? 0 : -2.4;
-    const ty = portrait ? -0.6 : 1.3;
+    const ty = portrait ? -1.7 : 1.3;
     camera.position.set(tx + Math.sin(swing) * dist, 3.4 + Math.sin(elapsed * 0.2) * 0.3, Math.cos(swing) * dist);
     controls.target.set(tx, ty, -0.3);
     camera.lookAt(controls.target);

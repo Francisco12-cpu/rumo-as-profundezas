@@ -87,6 +87,8 @@ function handlePeerData(data, conn) {
             if (isGuest) {
                 myPlayerId = data.playerIndex;
                 updateRollButton();
+                // Personagem escolhido na tela do convidado: o host decide se dá.
+                if (characterPicks[0]) sendToHost({ type: 'pick_character', character: characterPicks[0] });
             }
             break;
         case 'sync_state':
@@ -95,7 +97,7 @@ function handlePeerData(data, conn) {
                 boardLength = gameState.boardLength;
                 // Os peões do convidado foram montados com a configuração
                 // local dele; se o host escolheu outros personagens, remonta.
-                if (gameState.tokenSet && gameState.tokenSet !== pawnsBuiltForTokenSet) createPawns();
+                if (getPawnsSignature() !== pawnsBuiltForTokenSet) createPawns();
                 // O mapa das casas é o do host (ver tabuleiro/layout.js): redesenha.
                 if (gameState.board) {
                     createTiles();
@@ -175,6 +177,9 @@ function handlePeerData(data, conn) {
         case 'answer_request':
             if (isHost) handleAnswerRequest(conn, data.optionIndex);
             break;
+        case 'pick_character':
+            if (isHost) handleCharacterPick(conn, data.character);
+            break;
     }
 }
 
@@ -187,6 +192,21 @@ function broadcastToGuests(data) {
             } catch (e) {}
         }
     });
+}
+
+// Convidado pediu um personagem: só vale se existir e ninguém mais tiver.
+// O host troca, remonta os peões e manda o estado novo pra todo mundo.
+function handleCharacterPick(conn, character) {
+    const idx = conn.assignedPlayerIndex;
+    const player = gameState && gameState.players[idx];
+    if (!player || !PAWN_BUILDERS[character] || character === 'default') return;
+    if (gameState.players.some((p, i) => i !== idx && p.character === character)) return;
+    player.character = character;
+    player.name = CHARACTER_NAMES[character] || player.name;
+    createPawns();
+    syncPawnPositions();
+    updateHUD();
+    broadcastToGuests({ type: 'sync_state', gameState: gameState });
 }
 
 // Envia uma solicitação de ação do guest para o host (único peer conectado).

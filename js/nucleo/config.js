@@ -69,6 +69,15 @@ let tokenSet = (function loadSavedTokenSet() {
     } catch (e) {}
     return DEFAULT_TOKEN_SET;
 })();
+// Personagem escolhido por cada jogador humano na configuração (chave de
+// PAWN_BUILDERS, ou null = sorteio). O do jogador 1 é lembrado.
+let characterPicks = (function loadSavedPick() {
+    try {
+        const saved = localStorage.getItem('trivia3d_character');
+        if (saved && CHARACTER_NAMES[saved]) return [saved];
+    } catch (e) {}
+    return [];
+})();
 let roomCodeGlobal = null;
 let peer = null;
 let connections = [];

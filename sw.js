@@ -2,7 +2,7 @@
 // Service worker do app instalável (PWA). Na instalação guarda todos os
 // arquivos do jogo; depois, com internet, busca sempre a versão nova
 // (e atualiza o cache), e sem internet usa o que está guardado.
-const CACHE = 'rumo-as-profundezas-448c7e033f';
+const CACHE = 'rumo-as-profundezas-d949885352';
 const ARQUIVOS = [
     "./",
     "./assets/icons/apple-touch-icon.png",
@@ -13,6 +13,7 @@ const ARQUIVOS = [
     "./assets/icons/icon-512.png",
     "./assets/icons/icone.svg",
     "./assets/models/modelos-fundo-do-mar.js",
+    "./data/creditos.json",
     "./data/questions/banco-conhecimentos-gerais.json",
     "./data/questions/banco-fundo-do-mar.json",
     "./data/questions/manifest.json",
@@ -32,9 +33,12 @@ const ARQUIVOS = [
     "./js/data/gameInfo.js",
     "./js/data/tileTypes.js",
     "./js/efeitos/particles.js",
+    "./js/interface/creditos.js",
+    "./js/interface/escolhaPersonagem.js",
     "./js/interface/i18n.js",
     "./js/interface/icones.js",
     "./js/interface/interaction.js",
+    "./js/interface/miniMenus.js",
     "./js/interface/transicao.js",
     "./js/interface/ui.js",
     "./js/interface/vitrine.js",

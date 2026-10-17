@@ -1,14 +1,54 @@
 // ============ GERENCIAMENTO DE ESTADO ============
+// Personagem de cada jogador: quem escolheu fica com o escolhido (se ninguém
+// antes pegou); os outros são sorteados do conjunto setId sem repetir — se o
+// conjunto acabar, sorteia entre todos; só repete se não sobrar nenhum.
+function assignCharacters(total, picks, setId, random) {
+    const rand = random || Math.random;
+    const all = Object.keys(PAWN_BUILDERS).filter((k) => k !== 'default');
+    const used = new Set();
+    const result = new Array(total).fill(null);
+    for (let i = 0; i < total; i++) {
+        const k = picks[i];
+        if (k && PAWN_BUILDERS[k] && k !== 'default' && !used.has(k)) {
+            result[i] = k;
+            used.add(k);
+        }
+    }
+    const draw = (pool) => {
+        const free = pool.filter((k) => !used.has(k));
+        if (!free.length) return null;
+        const k = free[Math.floor(rand() * free.length)];
+        used.add(k);
+        return k;
+    };
+    for (let i = 0; i < total; i++) {
+        if (result[i]) continue;
+        result[i] = draw(getTokenSetRoster(setId)) || draw(all) || getCharacterKeyFor(setId, i);
+    }
+    return result;
+}
+
+// Quem escolhe o personagem na tela: no solo e no host só o jogador 1 (os
+// convidados escolhem na tela deles e mandam pick_character); no "passa o
+// aparelho", todos.
+function getHumanCharacterPicks(totalPlayers) {
+    const picks = new Array(totalPlayers).fill(null);
+    const n = currentMode === 'local' ? totalPlayers : 1;
+    for (let i = 0; i < n && i < totalPlayers; i++) picks[i] = characterPicks[i] || null;
+    return picks;
+}
+
 function createGameState() {
     const players = [];
     const totalPlayers = currentMode === 'solo' ? 1 + numBots : numPlayers;
+    const characters = assignCharacters(totalPlayers, getHumanCharacterPicks(totalPlayers), tokenSet);
     // O nome vem do personagem do jogador (antes era uma lista fixa que não
     // batia com o modelo: o 3º jogador se chamava "Sandy" mas era o Lula).
     // Se o mesmo personagem aparecer duas vezes, ganha um número pra não confundir.
     const usedNames = {};
     for (let i = 0; i < totalPlayers; i++) {
         const isBot = currentMode === 'solo' && i > 0;
-        const character = getCharacterKeyFor(tokenSet, i);
+        const character = characters[i];
         let name = CHARACTER_NAMES[character] || CHARACTER_NAMES.default;
         usedNames[name] = (usedNames[name] || 0) + 1;
         if (usedNames[name] > 1) name += ' ' + usedNames[name];

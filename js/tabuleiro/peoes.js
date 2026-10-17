@@ -106,6 +106,13 @@ function delay(ms) {
 // createCharacterPawn() continua chamável daqui como sempre, só que agora
 // isolada num sistema próprio; ver comentário lá pra trocar o modelo futuramente)
 
+// Assinatura dos peões montados (conjunto + personagem de cada um): o
+// convidado P2P remonta quando a do host muda.
+function getPawnsSignature() {
+    if (!gameState) return null;
+    return (gameState.tokenSet || tokenSet) + '|' + gameState.players.map((p) => p.character).join(',');
+}
+
 function createPawns() {
     while (pawnsGroup.children.length) pawnsGroup.remove(pawnsGroup.children[0]);
     pawns = [];
@@ -138,7 +145,7 @@ function createPawns() {
     createTurnMarker();
     const startScale = getTileCrowdScale(totalPlayers);
     pawns.forEach((pawn) => pawn.scale.setScalar(startScale)); // todos começam juntos na casa 0
-    pawnsBuiltForTokenSet = setId;
+    pawnsBuiltForTokenSet = getPawnsSignature();
     activePawnToFollow = gameState.currentPlayerIndex;
     setCameraFocus(gameState.currentPlayerIndex);
 }

@@ -128,6 +128,8 @@ function updateColorOptions() {
         });
         container.appendChild(dot);
     });
+    // As abas da escolha de personagem mostram a cor de cada jogador.
+    renderCharacterPicker();
 }
 
 function showJoinRoom() {

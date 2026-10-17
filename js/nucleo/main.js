@@ -73,7 +73,10 @@ function wireUpEventListeners() {
         if (el) el.addEventListener(event, handler);
     };
 
-    on('btn-open-settings', 'click', openSettings);
+    on('btn-open-settings', 'click', onSettingsFab);
+    on('btn-quick-settings', 'click', openSettings);
+    on('btn-camera-menu', 'click', () => toggleCameraMenu());
+    initMiniMenus();
     on('btn-settings-close', 'click', closeSettings);
     on('btn-mute', 'click', toggleMute);
     on('btn-hud-mute', 'click', toggleMute);
@@ -92,6 +95,9 @@ function wireUpEventListeners() {
     on('btn-join-room', 'click', showJoinRoom);
     on('btn-open-deck', 'click', openDeckManager);
     on('btn-open-docs', 'click', openDocs);
+    on('btn-open-credits', 'click', openCredits);
+    on('btn-online', 'click', toggleOnlineMenu);
+    on('btn-credits-close', 'click', closeCredits);
 
     on('btn-setup-back', 'click', closeSetup);
     on('btn-start-game', 'click', startGame);
@@ -176,6 +182,7 @@ function init() {
         if (!openModal) return;
         if (openModal.id === 'deck-modal') closeDeckManager();
         else if (openModal.id === 'docs-modal') closeDocs();
+        else if (openModal.id === 'credits-modal') closeCredits();
         else if (openModal.id === 'join-room-modal') closeJoinRoom();
         else if (openModal.id === 'settings-modal') closeSettings();
         else if (openModal.id === 'victory-modal') closeVictoryAndReset();
