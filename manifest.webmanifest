@@ -1,26 +1,20 @@
 {
-  "name": "Rumo às Profundezas",
-  "short_name": "Profundezas",
-  "description": "Jogo de tabuleiro 3D de perguntas e respostas no fundo do mar — sozinho, com amigos ou online.",
-  "start_url": "./index.html",
-  "scope": "./",
-  "display": "standalone",
-  "orientation": "any",
-  "background_color": "#001a33",
-  "theme_color": "#003366",
-  "lang": "pt-BR",
-  "icons": [
-    {
-      "src": "assets/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "assets/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ]
+    "name": "Rumo às Profundezas",
+    "short_name": "Profundezas",
+    "description": "Jogo de tabuleiro 3D de perguntas no fundo do mar. Por Francisco Audir.",
+    "lang": "pt-BR",
+    "start_url": "./",
+    "scope": "./",
+    "display": "fullscreen",
+    "display_override": ["fullscreen", "standalone"],
+    "orientation": "any",
+    "background_color": "#052a47",
+    "theme_color": "#0b58a3",
+    "categories": ["games", "education", "kids"],
+    "icons": [
+        { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+        { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+        { "src": "assets/icons/icon-192-maskable.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+        { "src": "assets/icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    ]
 }

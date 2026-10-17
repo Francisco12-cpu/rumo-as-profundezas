@@ -26,19 +26,17 @@
             content="Jogo de tabuleiro 3D de perguntas e respostas — sozinho, com amigos, ou online."
         />
 
-        <!-- Favicon: um emoji embutido via SVG data URI — sem depender de nenhum
-             arquivo de imagem externo, no mesmo espírito "sem assets externos"
-             do resto do jogo (texturas/áudio 100% procedurais). -->
-        <link
-            rel="icon"
-            href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>"
-        />
+        <!-- Ícone do jogo (assets/icons, gerado do ícone "Bolhas e luz") -->
+        <link rel="icon" type="image/png" href="assets/icons/favicon-64.png" />
+        <link rel="icon" type="image/svg+xml" href="assets/icons/icone.svg" />
 
-        <!-- PWA: permite "Instalar app" / "Adicionar à tela inicial". Só funciona
-             servido por http(s) (service worker exige isso) — em file:// o jogo
-             continua funcionando normalmente, só sem a opção de instalar. -->
+        <!-- PWA: "Instalar app" / "Adicionar à tela inicial". Só funciona servido
+             por http(s) (service worker exige isso); em file:// o jogo roda igual. -->
         <link rel="manifest" href="manifest.webmanifest" />
-        <meta name="theme-color" content="#003366" />
+        <meta name="theme-color" content="#0b58a3" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-title" content="Profundezas" />
         <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
 
         <!-- Bibliotecas (vendorizadas localmente em vendor/ — não dependem mais de CDN/internet) -->
@@ -54,6 +52,8 @@
         <script src="vendor/UnrealBloomPass.js"></script>
         <script src="vendor/LuminosityHighPassShader.js"></script>
         <script src="vendor/OrbitControls.js"></script>
+        <!-- Complementos da r128 que o kit de modelos (feito pra r160) precisa -->
+        <script src="vendor/three-r128-extras.js"></script>
 
         <link rel="stylesheet" href="styles.css" />
     </head>
@@ -69,25 +69,98 @@
                 data-i18n-title="settings_title"
                 title="Configurações"
                 aria-label="Configurações"
-            >
-                ⚙
-            </button>
+                data-icon="ajustes"
+            ></button>
+
+            <!-- ABERTURA (interface/vitrine.js/initSplash): logo, nome, "toque para continuar" -->
+            <div class="splash-screen" id="splash-screen" role="button" tabindex="0" aria-label="Toque para continuar">
+                <div class="splash-bubbles" aria-hidden="true">
+                    <span></span><span></span><span></span><span></span><span></span><span></span><span></span
+                    ><span></span>
+                </div>
+                <svg class="splash-logo" viewBox="0 0 200 200" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="spongeFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#ffe95a" />
+                            <stop offset="1" stop-color="#ffc928" />
+                        </linearGradient>
+                    </defs>
+                    <path
+                        d="M48 30 Q100 18 152 30 Q176 36 172 62 Q166 100 172 138 Q176 166 150 172 Q100 182 50 172 Q24 166 28 138 Q34 100 28 62 Q24 36 48 30 Z"
+                        fill="url(#spongeFill)"
+                        stroke="#d99a00"
+                        stroke-width="6"
+                    />
+                    <g fill="#e0a814">
+                        <circle cx="62" cy="58" r="13" />
+                        <circle cx="118" cy="48" r="9" />
+                        <circle cx="148" cy="80" r="15" />
+                        <circle cx="84" cy="96" r="10" />
+                        <circle cx="52" cy="118" r="9" />
+                        <circle cx="128" cy="124" r="12" />
+                        <circle cx="92" cy="150" r="14" />
+                        <circle cx="150" cy="150" r="8" />
+                        <circle cx="60" cy="156" r="7" />
+                        <circle cx="110" cy="82" r="6" />
+                    </g>
+                    <path
+                        d="M44 42 Q70 34 96 36"
+                        stroke="#fff6b8"
+                        stroke-width="7"
+                        stroke-linecap="round"
+                        fill="none"
+                        opacity="0.8"
+                    />
+                </svg>
+                <h1 class="splash-title" id="splash-title">Rumo às Profundezas</h1>
+                <p class="splash-tap">Toque para continuar</p>
+                <p class="splash-credit">Um jogo de Francisco Audir</p>
+            </div>
+
+            <!-- CARREGAMENTO DA PARTIDA (interface/transicao.js) -->
+            <div class="loading-screen hidden" id="loading-screen" role="status" aria-live="polite">
+                <div class="loading-fish" aria-hidden="true"><span></span><span></span><span></span></div>
+                <img class="loading-logo" src="assets/icons/icon-192.png" alt="" />
+                <h2 class="loading-title">Preparando o fundo do mar</h2>
+                <div class="loading-bar"><div class="loading-bar-fill" id="loading-bar-fill"></div></div>
+                <p class="loading-step" id="loading-step">Mergulhando...</p>
+                <p class="loading-tip"><span>Dica:</span> <span id="loading-tip"></span></p>
+            </div>
 
             <!-- MENU PRINCIPAL -->
             <div class="screen active" id="screen-menu">
-                <!-- Texto preenchido a partir de GAME_NAME (js/data/gameInfo.js) — ver applyGameName() em main.js -->
-                <h1 class="menu-title" id="menu-game-title">TRIVIA 3D</h1>
-                <p class="menu-subtitle" data-i18n="menu_subtitle">Fundo do Mar - Bob Esponja</p>
-                <div class="menu-buttons">
-                    <button class="btn btn-primary hidden" id="btn-resume-game" data-i18n="btn_resume">
-                        Continuar Partida
-                    </button>
-                    <button class="btn btn-primary" id="btn-new-solo" data-i18n="btn_solo">Novo Jogo Solo</button>
-                    <button class="btn btn-secondary" id="btn-new-local" data-i18n="btn_local">Modo Local</button>
-                    <button class="btn btn-tertiary" id="btn-create-room" data-i18n="btn_host">Criar Sala P2P</button>
-                    <button class="btn btn-secondary" id="btn-join-room" data-i18n="btn_join">Entrar em Sala</button>
-                    <button class="btn btn-warning" id="btn-open-deck" data-i18n="btn_deck">Gerenciar Perguntas</button>
-                    <button class="btn btn-secondary" id="btn-open-docs" data-i18n="btn_rules">Regras</button>
+                <div class="menu-panel">
+                    <!-- Texto preenchido a partir de GAME_NAME (js/data/gameInfo.js) — ver applyGameName() em main.js -->
+                    <h1 class="menu-title" id="menu-game-title">Rumo às Profundezas</h1>
+                    <p class="menu-subtitle" data-i18n="menu_subtitle">Um jogo de perguntas no fundo do mar</p>
+                    <div class="menu-buttons">
+                        <button class="btn btn-wood btn-wood-gold hidden" id="btn-resume-game" data-icon="continuar">
+                            <span data-i18n="btn_resume">Continuar Partida</span>
+                        </button>
+                        <button class="btn btn-wood btn-wood-gold" id="btn-new-solo" data-icon="jogar">
+                            <span data-i18n="btn_solo">Novo Jogo</span>
+                        </button>
+                        <button class="btn btn-wood" id="btn-new-local" data-icon="grupo">
+                            <span data-i18n="btn_local">Jogar com Amigos</span>
+                        </button>
+                        <div class="menu-row">
+                            <button class="btn btn-wood" id="btn-create-room" data-icon="rede">
+                                <span data-i18n="btn_host">Criar Sala</span>
+                            </button>
+                            <button class="btn btn-wood" id="btn-join-room" data-icon="entrar">
+                                <span data-i18n="btn_join">Entrar em Sala</span>
+                            </button>
+                        </div>
+                        <div class="menu-row">
+                            <button class="btn btn-wood btn-wood-small" id="btn-open-docs" data-icon="livro">
+                                <span data-i18n="btn_rules">Regras</span>
+                            </button>
+                            <button class="btn btn-wood btn-wood-small" id="btn-open-deck" data-icon="cartas">
+                                <span data-i18n="btn_deck">Perguntas</span>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="menu-credit">Criado por Francisco Audir</p>
                 </div>
             </div>
 
@@ -128,6 +201,16 @@
                             <option value="all" data-i18n="bank_all">Todos os bancos (aleatório)</option>
                         </select>
                     </div>
+                    <div class="setup-group" id="setup-token-set-group">
+                        <div class="setup-label" data-i18n="label_token_set">Personagens</div>
+                        <select class="setup-select" id="setup-token-set">
+                            <option value="classicos" data-i18n="opt_tokens_classic">
+                                Clássicos (Bob, Patrick...)
+                            </option>
+                            <option value="novos" data-i18n="opt_tokens_new">Novos (Polvo, Estrela...)</option>
+                            <option value="misturados" data-i18n="opt_tokens_mixed">Misturados</option>
+                        </select>
+                    </div>
                     <div class="setup-group">
                         <div class="setup-label" data-i18n="label_colors">Cores dos Personagens</div>
                         <div class="color-options" id="color-options-container"></div>
@@ -158,6 +241,20 @@
                 <div class="hud-top">
                     <div class="hud-players" id="hud-players"></div>
                     <div class="hud-top-right">
+                        <button
+                            class="btn-hud-round btn-mute"
+                            id="btn-hud-mute"
+                            data-icon="som"
+                            aria-label="Ligar/desligar o som"
+                            title="Ligar/desligar o som"
+                        ></button>
+                        <button
+                            class="btn-hud-round"
+                            id="btn-legend"
+                            data-icon="livro"
+                            aria-label="O que cada casa faz"
+                            title="O que cada casa faz"
+                        ></button>
                         <div class="hud-room-code" id="hud-room-code" style="display: none">
                             <span><span data-i18n="hud_room">Sala:</span> <code id="hud-room-code-text"></code></span>
                             <button
@@ -173,6 +270,7 @@
                         <button
                             class="btn-leave-game"
                             id="btn-leave-game"
+                            data-icon="sair"
                             data-i18n="hud_leave"
                             data-i18n-title="hud_leave"
                             title="Sair da partida"
@@ -193,15 +291,92 @@
                             <span class="tile-info-label" id="tile-info-label">Casa</span>
                         </div>
                         <div class="tile-info-desc" id="tile-info-desc"></div>
+                        <div class="tile-info-who" id="tile-info-who"></div>
                     </div>
-                    <button class="tile-info-close" id="btn-tile-info-close" aria-label="Fechar">✕</button>
+                    <button
+                        class="tile-info-close"
+                        id="btn-tile-info-close"
+                        aria-label="Fechar"
+                        data-icon="fechar"
+                    ></button>
                 </div>
 
-                <button class="btn-camera-toggle" id="btn-camera-toggle" data-i18n="hud_camera">Mudar Câmera</button>
+                <!-- Aviso grande "Vez de Fulano!" (ui.js/showTurnToast) -->
+                <div class="turn-toast hidden" id="turn-toast" role="status" aria-live="polite">
+                    <span class="turn-toast-dot"></span>
+                    <span id="turn-toast-text"></span>
+                </div>
+
+                <!-- Cartão da casa ao chegar: o que acontece aqui (ui.js/showTileIntro) -->
+                <div class="tile-intro hidden" id="tile-intro" role="dialog" aria-live="polite">
+                    <div class="tile-intro-card">
+                        <div class="tile-intro-head">
+                            <div class="tile-intro-symbol" id="tile-intro-symbol">?</div>
+                            <div>
+                                <div class="tile-intro-number" id="tile-intro-number">Casa 1</div>
+                                <div class="tile-intro-title" id="tile-intro-title"></div>
+                                <div class="tile-intro-subtitle" id="tile-intro-subtitle"></div>
+                            </div>
+                        </div>
+                        <ul class="tile-intro-lines" id="tile-intro-lines"></ul>
+                        <button class="btn-tile-intro-ok" id="btn-tile-intro-ok">OK!</button>
+                    </div>
+                </div>
+
+                <div class="camera-buttons">
+                    <button
+                        class="btn-camera"
+                        id="btn-camera-fly"
+                        aria-label="Voar pelo fundo do mar"
+                        title="Voar pelo fundo do mar"
+                        data-icon="voar"
+                        data-i18n="hud_camera_fly"
+                    >
+                        <span class="cam-label">Voar</span>
+                    </button>
+                    <button
+                        class="btn-camera"
+                        id="btn-camera-focus"
+                        data-icon="alvo"
+                        data-i18n="hud_camera_focus"
+                        aria-label="Ver personagem"
+                        title="Ver personagem"
+                    >
+                        <span class="cam-label">Ver personagem</span>
+                    </button>
+                    <button
+                        class="btn-camera"
+                        id="btn-camera-overview"
+                        data-icon="mapa"
+                        data-i18n="hud_camera_overview"
+                        aria-label="Ver tabuleiro"
+                        title="Ver tabuleiro"
+                    >
+                        <span class="cam-label">Ver tabuleiro</span>
+                    </button>
+                </div>
                 <div class="hud-bottom">
-                    <button class="btn-roll" id="btn-roll-dice" data-i18n="hud_roll" disabled>Rolar Dado</button>
+                    <button class="btn-roll" id="btn-roll-dice" data-i18n="hud_roll" data-icon="dado" disabled>
+                        Jogar o dado
+                    </button>
                     <div id="roll-hint" class="roll-hint"></div>
                     <div id="hud-turn-info" class="hud-turn-info"></div>
+                </div>
+            </div>
+
+            <!-- LEGENDA DAS CASAS (montada de TILE_TYPES em ui.js/openLegend) -->
+            <div
+                class="modal-overlay hidden"
+                id="legend-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="legend-title"
+            >
+                <div class="modal-card legend-card">
+                    <h3 class="legend-title" id="legend-title">O que cada casa faz</h3>
+                    <ul class="legend-list" id="legend-list"></ul>
+                    <p class="legend-coins" id="legend-coins"></p>
+                    <button class="btn btn-primary btn-sm" id="btn-legend-close" data-icon="ok">Entendi</button>
                 </div>
             </div>
 
@@ -213,6 +388,24 @@
                 aria-modal="true"
                 aria-label="Pergunta"
             ></div>
+
+            <!-- MODAL DE VITÓRIA (state.js/onGameWin -> ui.js/showVictory) -->
+            <div
+                class="modal-overlay hidden"
+                id="victory-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="victory-title"
+            >
+                <div class="modal-card victory-card">
+                    <div class="victory-trophy" data-icon="trofeu"></div>
+                    <h3 class="victory-title" id="victory-title"></h3>
+                    <p class="victory-detail" id="victory-detail"></p>
+                    <button class="btn btn-primary" id="btn-victory-menu" data-i18n="victory_menu">
+                        Voltar ao menu
+                    </button>
+                </div>
+            </div>
 
             <!-- MODAL DE DECK -->
             <div
@@ -394,9 +587,8 @@
                                     id="btn-mute"
                                     aria-label="Ativar/mudo o som"
                                     title="Ativar/mudo o som"
-                                >
-                                    🔊
-                                </button>
+                                    data-icon="som"
+                                ></button>
                                 <input
                                     class="volume-slider-master"
                                     id="settings-volume-master"
@@ -464,9 +656,11 @@
                             <select class="setup-select settings-quality-select" id="settings-quality">
                                 <option value="auto" data-i18n="settings_quality_auto">Automática</option>
                                 <option value="high" data-i18n="settings_quality_high">Alta</option>
-                                <option value="low" data-i18n="settings_quality_low">Leve</option>
+                                <option value="medium" data-i18n="settings_quality_medium">Média</option>
+                                <option value="low" data-i18n="settings_quality_low">Baixa (mais leve)</option>
                             </select>
                         </div>
+                        <p class="settings-hint" id="settings-quality-now"></p>
                         <p class="settings-hint" data-i18n="settings_quality_hint">
                             Vale a partir da próxima partida ou ao recarregar a página.
                         </p>
@@ -511,30 +705,48 @@
         <script src="js/data/diceFaces.js"></script>
         <script src="js/data/boardPath.js"></script>
 
-        <!-- Código do jogo -->
-        <script src="js/config.js"></script>
-        <script src="js/i18n.js"></script>
-        <script src="js/audio.js"></script>
-        <script src="js/pawnBuilders.js"></script>
-        <script src="js/scene.js"></script>
-        <script src="js/interaction.js"></script>
-        <script src="js/particles.js"></script>
-        <script src="js/camera.js"></script>
-        <script src="js/state.js"></script>
-        <script src="js/bots.js"></script>
-        <script src="js/questions.js"></script>
-        <script src="js/multiplayer.js"></script>
-        <script src="js/ui.js"></script>
-        <script src="js/main.js"></script>
+        <!-- Kit de modelos 3D (gerado por tools/adaptar-kit-modelos.js) — expõe MODELOS_FUNDO_DO_MAR -->
+        <script src="assets/models/modelos-fundo-do-mar.js"></script>
 
-        <!-- Registro do service worker (PWA). Fica inline, fora de js/, porque
-             não é lógica de jogo — não precisa entrar em GAME_FILES
-             (test/mocks.js). Silencioso em file:// ou navegadores sem suporte. -->
+        <!-- Código do jogo, um sistema por pasta. A ORDEM importa só para o que
+             roda no topo do arquivo (constantes); funções podem chamar umas às
+             outras em qualquer ordem. Os testes (test/mocks.js) leem esta lista. -->
+        <script src="js/nucleo/config.js"></script>
+        <script src="js/interface/i18n.js"></script>
+        <script src="js/interface/icones.js"></script>
+        <script src="js/audio/audio.js"></script>
+        <script src="js/audio/musica.js"></script>
+        <script src="js/modelos/seaKit.js"></script>
+        <script src="js/modelos/classicos.js"></script>
+        <script src="js/modelos/animacaoPeoes.js"></script>
+        <script src="js/modelos/pawnBuilders.js"></script>
+        <script src="js/nucleo/renderizador.js"></script>
+        <script src="js/cenario/ambiente.js"></script>
+        <script src="js/cenario/atmosfera.js"></script>
+        <script src="js/cenario/decoracao.js"></script>
+        <script src="js/tabuleiro/caminho.js"></script>
+        <script src="js/tabuleiro/layout.js"></script>
+        <script src="js/tabuleiro/casas.js"></script>
+        <script src="js/tabuleiro/peoes.js"></script>
+        <script src="js/dado/dado.js"></script>
+        <script src="js/interface/interaction.js"></script>
+        <script src="js/efeitos/particles.js"></script>
+        <script src="js/camera/camera.js"></script>
+        <script src="js/nucleo/state.js"></script>
+        <script src="js/nucleo/bots.js"></script>
+        <script src="js/cartas/cartas3d.js"></script>
+        <script src="js/cartas/questions.js"></script>
+        <script src="js/rede/multiplayer.js"></script>
+        <script src="js/interface/ui.js"></script>
+        <script src="js/interface/vitrine.js"></script>
+        <script src="js/interface/transicao.js"></script>
+        <script src="js/nucleo/main.js"></script>
+
+        <!-- Service worker do PWA (sw.js, gerado por tools/gerar-sw.mjs). Fora de
+             js/ porque não é lógica de jogo. Silencioso em file://. -->
         <script>
             if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('sw.js').catch(() => {});
-                });
+                window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
             }
         </script>
     </body>

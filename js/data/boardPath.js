@@ -15,7 +15,7 @@
 //   - direção sempre clara (cada fileira só anda numa direção);
 //   - sem cruzamentos ou sobreposição (fileiras em Z's diferentes);
 //   - espaçamento regular (amostragem por comprimento de arco, ver
-//     getTilePosition em scene.js);
+//     getTilePosition em js/tabuleiro/caminho.js);
 //   - ainda com curvas orgânicas suaves (leve ondulação e curvas de retorno).
 const BOARD_TILES_PER_ROW = 7;
 const BOARD_ROW_WIDTH = 20;

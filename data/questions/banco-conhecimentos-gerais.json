@@ -2,7 +2,7 @@
   "nomeBaralho": "Conhecimentos Gerais",
   "versao": "1.0",
   "descricao": "Geografia, ciência, história, esportes e matemática — sem tema fixo.",
-  "efeitosCasasAtivos": ["avancar_2", "voltar_2", "pular_vez", "trocar_lugar", "pergunta_bonus"],
+  "efeitosCasasAtivos": ["avanco", "voltar_2", "pular_vez", "trocar_lugar", "pergunta_bonus"],
   "perguntas": [
     {
       "id": 1,

@@ -2,7 +2,7 @@
   "nomeBaralho": "Fundo do Mar",
   "versao": "1.0",
   "descricao": "Perguntas temáticas sobre Bob Esponja e o fundo do mar.",
-  "efeitosCasasAtivos": ["avancar_2", "voltar_2", "pular_vez", "trocar_lugar", "pergunta_bonus"],
+  "efeitosCasasAtivos": ["avanco", "voltar_2", "pular_vez", "trocar_lugar", "pergunta_bonus"],
   "perguntas": [
     {
       "id": 1,

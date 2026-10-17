@@ -5,7 +5,7 @@
 //   - qual PONTO ela tem desenhado (getDiceDotPattern)
 //   - qual NORMAL LOCAL do cubo (BoxGeometry) carrega essa textura
 // A rotação que faz o dado "parar" mostrando um resultado é sempre
-// CALCULADA a partir dessa segunda informação (ver scene.js/getDiceTargetRotation
+// CALCULADA a partir dessa segunda informação (ver js/dado/dado.js/getDiceTargetRotation
 // usando THREE.Quaternion.setFromUnitVectors) — nunca escrita à mão em graus/
 // radianos. Foi exatamente escrever a rotação à mão, sem essa referência
 // única entre "que face é essa" e "pra onde ela aponta", que causava o bug de
